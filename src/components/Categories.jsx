@@ -1,6 +1,6 @@
 // src/components/Categories.jsx
 
-//reusable component gor categories
+//reusable component got categories
 
 import React from "react";
 

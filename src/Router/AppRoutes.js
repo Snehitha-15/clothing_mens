@@ -1,28 +1,89 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+
+// ✅ Components
 import Header from "../components/Header/Header";
-import Footer from "../footer/Footer";
+import CheckoutHeader from "../components/Header/CheckoutHeader";
+import Footer from "../components/footer/Footer";
+
+// ✅ Pages
+// import CartPage from "../Pages/Checkout/CartPage";
 import Products from "../Pages/products/Products";
+import AddressPage from "../Pages/Checkout/Address";
+import PaymentPage from "../Pages/Checkout/Payment";
+import OrderSuccess from "../Pages/Checkout/OrderSuccess";
+import Cart from "../Pages/cart/Cart"
 
-const Home = () => <Products />;
-const Profile = () => <div className="p-4 text-center">👤 Profile Page</div>;
-const Cart = () => <div className="p-4 text-center">🛒 Cart Page</div>;
+// ✅ Category list (for Header)
+const categoryList = [
+  "Shirts",
+  "Pants",
+  "T-Shirts",
+  "Sweaters",
+  "Shorts",
+  "Jackets",
+  "Jeans",
+  "Sweatshirts",
+  "Blazers",
+  "Suits",
+];
 
-const AppRoutes = () => (
-  <Router>
-    {/* Header will appear on all pages */}
-    <Header />
+const AppContent = () => {
+  const [selectedCategory, setSelectedCategory] = useState("Shirts");
+  const location = useLocation();
 
-    {/* Main content */}
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/cart" element={<Cart />} />
-    </Routes>
+  // ✅ Detect checkout-related pages
+  const isCheckoutPage =
+    location.pathname === "/cart" ||
+    location.pathname === "/address" ||
+    location.pathname === "/payment";
 
-    {/* Footer will appear on all pages */}
-    <Footer />
-  </Router>
-);
+  return (
+    <>
+      {/* ✅ Conditionally show headers */}
+      {isCheckoutPage ? (
+        <CheckoutHeader />
+      ) : (
+        <Header
+          categories={categoryList}
+          onCategorySelect={setSelectedCategory}
+        />
+      )}
+
+      {/* ✅ Routes */}
+      <Routes>
+        <Route
+          path="/"
+          element={<Products selectedCategory={selectedCategory} />}
+        />
+        <Route path="/cart" element={<Cart/>} />
+        <Route path="/address" element={<AddressPage />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+
+        <Route
+          path="/profile"
+          element={<div className="p-4 text-center">👤 Profile Page</div>}
+        />
+      </Routes>
+
+      {/* ✅ Footer appears only on non-checkout pages */}
+      {!isCheckoutPage && <Footer />}
+    </>
+  );
+};
+
+const AppRoutes = () => {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+};
 
 export default AppRoutes;
