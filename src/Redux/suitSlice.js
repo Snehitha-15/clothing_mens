@@ -40,7 +40,7 @@ const initialState = {
     { id: 14, name: "Light Blue Suit", price: 4799, image: suit14, description: "Casual light blue suit ideal for semi-formal events." },
     { id: 15, name: "Patterned Grey Suit", price: 5399, image: suit15, description: "Grey suit with subtle pattern for a stylish look." },
     { id: 16, name: "Classic Brown Suit", price: 4999, image: suit16, description: "Brown suit suitable for daily office wear." },
-    { id: 17, name: "Black Tuxedo with Satin Lapel", price: 7999, image: suit17, description: "Formal black tuxedo with satin lapels." },
+    { id: 17, name: "Black Tuxedo with Satin", price: 7999, image: suit17, description: "Formal black tuxedo with satin lapels." },
     { id: 18, name: "Beige Linen Suit", price: 5599, image: suit18, description: "Lightweight linen suit for summer weddings." },
   ],
 };

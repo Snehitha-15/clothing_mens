@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Footer from "../footer/Footer";
 import Products from "../Pages/products/Products";
+import ProfilePage from "../components/profile/Profilepage"; // ✅ import your real profile
 
 const Home = () => <Products />;
-const Profile = () => <div className="p-4 text-center">👤 Profile Page</div>;
 const Cart = () => <div className="p-4 text-center">🛒 Cart Page</div>;
 
 const AppRoutes = () => (
@@ -14,11 +14,14 @@ const AppRoutes = () => (
     <Header />
 
     {/* Main content */}
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/cart" element={<Cart />} />
-    </Routes>
+    <main style={{ minHeight: "80vh", paddingTop: "20px" }}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<ProfilePage />} /> {/* ✅ updated */}
+        <Route path="/cart" element={<Cart />} />
+        
+        </Routes>
+    </main>
 
     {/* Footer will appear on all pages */}
     <Footer />
