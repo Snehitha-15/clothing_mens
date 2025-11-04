@@ -62,7 +62,7 @@
 }
 
 /* ===== Professional Buttons ===== */
-.btn {
+/* .login-button {
   width: 100%;
   background: linear-gradient(90deg, #007185, #0097a7);
   color: white;
@@ -77,15 +77,15 @@
   transition: all 0.3s ease;
 }
 
-.btn:hover {
+ .login-button:hover {
   background: linear-gradient(90deg, #005f68, #008b95);
   box-shadow: 0 6px 15px rgba(0, 113, 133, 0.3);
   transform: translateY(-1px);
 }
 
-.btn:active {
+.login-button:active {
   transform: scale(0.98);
-}
+}  */
 
 /* ===== Logout Button ===== */
 .btn-danger {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "./Profilepage.css";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { signIn, logout } from "../../Redux/profileSlice";
@@ -9,16 +8,13 @@ export default function ProfilePage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Toggle between Login and Sign Up
   const [isSignUp, setIsSignUp] = useState(false);
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     name: "",
   });
 
-  // Load user from localStorage if available
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -33,7 +29,6 @@ export default function ProfilePage() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-
     if (formData.email && formData.password) {
       const loggedUser = { email: formData.email };
       dispatch(signIn(loggedUser));
@@ -44,7 +39,6 @@ export default function ProfilePage() {
 
   const handleSignUp = (e) => {
     e.preventDefault();
-
     if (formData.email && formData.password && formData.name) {
       const newUser = { email: formData.email, name: formData.name };
       dispatch(signIn(newUser));
@@ -59,29 +53,54 @@ export default function ProfilePage() {
     setFormData({ email: "", password: "", name: "" });
   };
 
-  // 🔹 Logged-in Screen
   if (user.loggedIn) {
     return (
-      <div className="profile-page container">
+      <div style={{ textAlign: "center", marginTop: "100px" }}>
         <h2>Welcome back, {user.name || user.email.split("@")[0]} 👋</h2>
         <p>You are logged in as {user.email}</p>
-        <button className="btn btn-danger" onClick={handleLogout}>
+        <button
+          style={{
+            backgroundColor: "red",
+            color: "white",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+          onClick={handleLogout}
+        >
           Logout
         </button>
       </div>
     );
   }
 
-  // 🔹 Login / Sign Up Page
   return (
-    <div className="auth-container">
-      <div className="auth-box">
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f4f4f4",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "30px",
+          borderRadius: "10px",
+          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          width: "350px",
+          textAlign: "center",
+        }}
+      >
         <h2>{isSignUp ? "Create Account" : "Login to Your Account"}</h2>
 
         <form onSubmit={isSignUp ? handleSignUp : handleLogin}>
           {isSignUp && (
             <>
-              <label className="bold-label">Full Name</label>
+              <label style={{ fontWeight: "bold" }}>Full Name</label>
               <input
                 type="text"
                 name="name"
@@ -89,11 +108,18 @@ export default function ProfilePage() {
                 value={formData.name}
                 onChange={handleChange}
                 required
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  marginBottom: "10px",
+                  borderRadius: "5px",
+                  border: "1px solid #ccc",
+                }}
               />
             </>
           )}
 
-          <label className="bold-label">Email</label>
+          <label style={{ fontWeight: "bold" }}>Email</label>
           <input
             type="email"
             name="email"
@@ -101,9 +127,16 @@ export default function ProfilePage() {
             value={formData.email}
             onChange={handleChange}
             required
+            style={{
+              width: "100%",
+              padding: "8px",
+              marginBottom: "10px",
+              borderRadius: "5px",
+              border: "1px solid #ccc",
+            }}
           />
 
-          <label className="bold-label">Password</label>
+          <label style={{ fontWeight: "bold" }}>Password</label>
           <input
             type="password"
             name="password"
@@ -111,27 +144,43 @@ export default function ProfilePage() {
             value={formData.password}
             onChange={handleChange}
             required
+            style={{
+              width: "100%",
+              padding: "8px",
+              marginBottom: "15px",
+              borderRadius: "5px",
+              border: "1px solid #ccc",
+            }}
           />
 
-          <button type="submit" className="btn">
-            {isSignUp ? "Sign Up" : "Login"}
-          </button>
+          {/* 🔹 Centered Blue Button */}
+          <div style={{ textAlign: "center" }}>
+            <button
+              type="submit"
+              style={{
+                backgroundColor: "#007BFF", // Blue color
+                color: "white",
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontWeight: "bold",
+                width: "50%",
+              }}
+            >
+              {isSignUp ? "Sign Up" : "Login"}
+            </button>
+          </div>
         </form>
 
-        <p className="toggle-text">
+        <p style={{ marginTop: "15px" }}>
           {isSignUp ? "Already have an account?" : "New to MensClothing?"}{" "}
           <span
-            className="link-text"
+            style={{ color: "#007BFF", cursor: "pointer", fontWeight: "bold" }}
             onClick={() => setIsSignUp(!isSignUp)}
           >
             {isSignUp ? "Login" : "Create one"}
           </span>
-        </p>
-
-        <p className="info-text">
-          By continuing, you agree to MensClothing’s{" "}
-          <span className="link-text">Conditions of Use</span> and{" "}
-          <span className="link-text">Privacy Policy</span>.
         </p>
       </div>
     </div>

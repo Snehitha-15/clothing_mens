@@ -11,19 +11,15 @@ import Header from "../components/Header/Header";
 import CheckoutHeader from "../components/Header/CheckoutHeader";
 import Footer from "../components/footer/Footer";
 
+
 // ✅ Pages
 // import CartPage from "../Pages/Checkout/CartPage";
 import Products from "../Pages/products/Products";
-<<<<<<< HEAD
-import ProfilePage from "../components/profile/Profilepage"; // ✅ import your real profile
-
-const Home = () => <Products />;
-const Cart = () => <div className="p-4 text-center">🛒 Cart Page</div>;
-=======
 import AddressPage from "../Pages/Checkout/Address";
 import PaymentPage from "../Pages/Checkout/Payment";
 import OrderSuccess from "../Pages/Checkout/OrderSuccess";
 import Cart from "../Pages/cart/Cart"
+import ProfilePage from "../components/profile/Profilepage";
 
 // ✅ Category list (for Header)
 const categoryList = [
@@ -38,29 +34,16 @@ const categoryList = [
   "Blazers",
   "Suits",
 ];
->>>>>>> 2d98307c084386ebc24c415fd696b775c78e90dd
 
 const AppContent = () => {
   const [selectedCategory, setSelectedCategory] = useState("Shirts");
   const location = useLocation();
 
-<<<<<<< HEAD
-    {/* Main content */}
-    <main style={{ minHeight: "80vh", paddingTop: "20px" }}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/profile" element={<ProfilePage />} /> {/* ✅ updated */}
-        <Route path="/cart" element={<Cart />} />
-        
-        </Routes>
-    </main>
-=======
   // ✅ Detect checkout-related pages
   const isCheckoutPage =
     location.pathname === "/cart" ||
     location.pathname === "/address" ||
     location.pathname === "/payment";
->>>>>>> 2d98307c084386ebc24c415fd696b775c78e90dd
 
   return (
     <>
@@ -87,7 +70,7 @@ const AppContent = () => {
 
         <Route
           path="/profile"
-          element={<div className="p-4 text-center">👤 Profile Page</div>}
+          element={<ProfilePage/>}
         />
       </Routes>
 
