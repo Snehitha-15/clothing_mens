@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Navbar,
-  NavbarBrand,
   Nav,
   NavItem,
   Input,
@@ -30,7 +29,6 @@ const Header = ({ categories = [], onCategorySelect }) => {
                   MENZ<span style={{ color: "#dc3545" }}>STYLE</span>
                 </h2>
               </Link>
-              
             </div>
 
       {/* Mobile Toggler */}
@@ -63,7 +61,7 @@ const Header = ({ categories = [], onCategorySelect }) => {
           <div className="d-flex align-items-center border rounded-pill px-2">
             <Input
               type="search"
-              placeholder="Search"
+              placeholder="Search for Products"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-0"

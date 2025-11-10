@@ -14,45 +14,91 @@ export default function ProfilePage() {
     password: "",
     name: "",
   });
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // "success" | "error"
 
+  // ✅ Load current user from localStorage when app starts
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      dispatch(signIn(JSON.parse(storedUser)));
+    const storedCurrentUser = localStorage.getItem("currentUser");
+    if (storedCurrentUser) {
+      dispatch(signIn(JSON.parse(storedCurrentUser)));
     }
   }, [dispatch]);
 
+  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setMessage("");
   };
 
+  // ✅ LOGIN FUNCTION
   const handleLogin = (e) => {
     e.preventDefault();
-    if (formData.email && formData.password) {
-      const loggedUser = { email: formData.email };
-      dispatch(signIn(loggedUser));
-      localStorage.setItem("user", JSON.stringify(loggedUser));
-      navigate("/");
+
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+
+    // Find user with matching email and password
+    const matchedUser = users.find(
+      (u) => u.email === formData.email && u.password === formData.password
+    );
+
+    if (matchedUser) {
+      localStorage.setItem("currentUser", JSON.stringify(matchedUser));
+      dispatch(signIn(matchedUser));
+      setMessageType("success");
+      setMessage("Login successful! Redirecting...");
+      setTimeout(() => navigate("/"), 1200);
+    } else {
+      setMessageType("error");
+      setMessage("Incorrect email or password.");
     }
   };
 
+  // ✅ SIGNUP FUNCTION
   const handleSignUp = (e) => {
     e.preventDefault();
+
     if (formData.email && formData.password && formData.name) {
-      const newUser = { email: formData.email, name: formData.name };
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      // Check if user already exists
+      const existingUser = users.find((u) => u.email === formData.email);
+      if (existingUser) {
+        setMessageType("error");
+        setMessage("Email already registered. Please log in instead.");
+        return;
+      }
+
+      const newUser = {
+        email: formData.email,
+        name: formData.name,
+        password: formData.password,
+      };
+
+      const updatedUsers = [...users, newUser];
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+      localStorage.setItem("currentUser", JSON.stringify(newUser));
       dispatch(signIn(newUser));
-      localStorage.setItem("user", JSON.stringify(newUser));
-      navigate("/");
+
+      setMessageType("success");
+      setMessage("Account created successfully! Redirecting...");
+      setTimeout(() => navigate("/"), 1200);
+    } else {
+      setMessageType("error");
+      setMessage("Please fill all fields to create an account.");
     }
   };
 
+  // ✅ LOGOUT FUNCTION
   const handleLogout = () => {
     dispatch(logout());
-    localStorage.removeItem("user");
+    localStorage.removeItem("currentUser");
     setFormData({ email: "", password: "", name: "" });
+    setMessage("");
   };
 
+  // ✅ LOGGED-IN VIEW
   if (user.loggedIn) {
     return (
       <div style={{ textAlign: "center", marginTop: "100px" }}>
@@ -75,6 +121,7 @@ export default function ProfilePage() {
     );
   }
 
+  // ✅ LOGIN / SIGNUP FORM VIEW
   return (
     <div
       style={{
@@ -153,12 +200,24 @@ export default function ProfilePage() {
             }}
           />
 
-          {/* 🔹 Centered Blue Button */}
+          {/* ✅ Inline message */}
+          {message && (
+            <p
+              style={{
+                color: messageType === "error" ? "red" : "green",
+                fontWeight: "bold",
+                marginBottom: "10px",
+              }}
+            >
+              {message}
+            </p>
+          )}
+
           <div style={{ textAlign: "center" }}>
             <button
               type="submit"
               style={{
-                backgroundColor: "#007BFF", // Blue color
+                backgroundColor: "#007BFF",
                 color: "white",
                 padding: "10px 20px",
                 border: "none",
@@ -174,10 +233,13 @@ export default function ProfilePage() {
         </form>
 
         <p style={{ marginTop: "15px" }}>
-          {isSignUp ? "Already have an account?" : "New to MensClothing?"}{" "}
+          {isSignUp ? "Already have an account?" : "New to MENZSTYLE?"}{" "}
           <span
             style={{ color: "#007BFF", cursor: "pointer", fontWeight: "bold" }}
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setMessage("");
+            }}
           >
             {isSignUp ? "Login" : "Create one"}
           </span>
