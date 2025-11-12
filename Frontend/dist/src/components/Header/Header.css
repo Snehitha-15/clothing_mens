@@ -1,0 +1,134 @@
+.category-link {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.category-link:hover {
+  color: #e91e63;
+  text-decoration: underline;
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: #e91e63;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 11px;
+}
+.header-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+/* Prevent elements from squishing too tightly */
+.header-nav .container {
+  flex-wrap: wrap;
+}
+
+/* Ensure logo and toggler align properly */
+.header-nav h2 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* ✅ Tablets and below */
+@media (max-width: 992px) {
+  .header-nav .navbar-collapse {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Categories stack neatly */
+  .header-nav .nav {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Category buttons */
+  .header-nav .nav-item button {
+    width: 100%;
+    margin: 6px 0;
+    font-size: 16px;
+  }
+
+  /* Center search + icons */
+  .header-nav .d-flex.gap-3 {
+    justify-content: center !important;
+  }
+
+  /* Adjust search input width */
+  .header-nav input[type="search"] {
+    width: 180px !important;
+  }
+}
+
+/* ✅ Mobile screens */
+@media (max-width: 768px) {
+  /* Navbar padding */
+  .header-nav {
+    padding: 10px 15px;
+  }
+
+  /* Center logo */
+  .header-nav .d-flex.align-items-center.mb-2 {
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Search + icons section */
+  .header-nav .d-flex.gap-3 {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* Search bar fills width */
+  .header-nav .rounded-pill {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .header-nav input[type="search"] {
+    width: 100% !important;
+    font-size: 14px;
+  }
+
+  .header-nav button {
+    font-size: 14px;
+  }
+
+  .header-nav .nav-item button {
+    font-size: 15px;
+  }
+}
+
+/* ✅ Small mobile phones */
+@media (max-width: 480px) {
+  .header-nav h2 {
+    font-size: 18px;
+  }
+
+  .header-nav input[type="search"] {
+    font-size: 13px;
+  }
+
+  .header-nav .btn svg {
+    font-size: 14px;
+  }
+
+  .header-nav .nav-item button {
+    font-size: 14px;
+  }
+
+  .header-nav .badge {
+    font-size: 9px !important;
+  }
+}
+

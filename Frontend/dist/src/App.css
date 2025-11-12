@@ -1,0 +1,420 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Banner */
+
+.hero-banner {
+  background: url("https://thumbs.dreamstime.com/b/handsome-male-model-fashionable-clothes-walking-street-handsome-male-model-fashionable-clothes-149334433.jpg")
+    center/cover no-repeat;
+  color: #fff;
+  text-align: center;
+  padding: 80px 20px;
+  position: relative;
+}
+
+.hero-content h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+.shop-btn {
+  background-color: #222;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.shop-btn:hover {
+  background-color: #444;
+}
+
+.offer-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.offer-card {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 20px 30px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+/* Checkout Styling */
+.checkout-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 25px 0;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.step-link {
+  text-decoration: none;
+  color: gray;
+  position: relative;
+  transition: color 0.3s, border-bottom 0.3s;
+}
+
+.step-link.active-step {
+  color: #00bcd4;
+  font-weight: 600;
+  border-bottom: 2px solid #00bcd4;
+  padding-bottom: 2px;
+}
+
+.step-divider {
+  color: #ccc;
+  font-weight: 300;
+}
+
+/* Payment page Styling  */
+
+.payment-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 40px;
+  flex-wrap: wrap;
+  background: #fafafa;
+}
+
+.payment-section {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.payment-title {
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.payment-option:hover {
+  background: #f5f5f5;
+}
+
+.payment-option.selected {
+  border-color: #ff3f6c;
+  background: #fff5f7;
+}
+
+.place-order-btn {
+  background: #ff3f6c;
+  color: white;
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.place-order-btn:hover {
+  background: #e0335e;
+}
+
+/* Price Summary Section */
+.summary-section {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+  height: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.summary-title {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+.discount {
+  color: #03a685;
+}
+.payment-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 40px 80px;
+  flex-wrap: wrap;
+  background: #fafafa;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Left Section */
+.payment-left {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  width: 500px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.payment-left h4 {
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.method-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.method-card:hover {
+  background: #f9f9f9;
+}
+
+.method-card.selected {
+  border: 2px solid #ff3f6c;
+  background: #fff5f7;
+}
+
+.place-order-btn {
+  background: #ff3f6c;
+  color: white;
+  width: 100%;
+  padding: 14px;
+  margin-top: 25px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.place-order-btn:hover {
+  background: #e73360;
+}
+
+/* Right Section (Summary) */
+.payment-summary {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+  height: fit-content;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.payment-summary h4 {
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  font-size: 16px;
+}
+
+.discount {
+  color: #03a685;
+}
+
+hr {
+  margin: 10px 0;
+  border-color: #eee;
+}
+.address-summary {
+  background: #f8f9fa;
+  border-left: 4px solid #ff3f6c;
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  border-radius: 6px;
+}
+
+/* Home page */
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #222;
+  border-bottom: 2px solid #ff3f6c;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.product-card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border-radius: 10px;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.product-image {
+  height: 260px;
+  object-fit: cover;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+/* Bottom Banners */
+.bottom-banner-section {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.bottom-banner {
+  position: relative;
+  width: 350px;
+  height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.bottom-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.4s ease;
+}
+
+.bottom-banner:hover img {
+  transform: scale(1.1);
+}
+
+.banner-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  text-align: center;
+}
+
+.banner-overlay h4 {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+.product-card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+.product-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+}
+
+
+
+
+
