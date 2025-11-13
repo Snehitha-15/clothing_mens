@@ -1,5 +1,6 @@
 // src/Redux/rootReducer.js
 import { combineReducers } from "@reduxjs/toolkit";
+import authReducer from "./authSlice";
 
 import cartReducer from "./cartSlice";
 import userReducer from "./userSlice";
@@ -13,10 +14,12 @@ import blazerReducer from "./blazerSlice";
 import jeansReducer from "./jeansSlice";
 import sweatshirtsReducer from "./sweatshirtSlice";
 import suitsReducer from "./suitSlice"; 
-import profileReducer from "./profileSlice";
+// import profileReducer from "./profileSlice";
+
 
 
 const rootReducer = combineReducers({
+  auth: authReducer,
   cart: cartReducer,
   user: userReducer,
   shirts: shirtsReducer,
@@ -29,7 +32,8 @@ const rootReducer = combineReducers({
   jeans: jeansReducer,
   sweatshirts: sweatshirtsReducer,
   suits: suitsReducer, 
-  profile: profileReducer,
+  // profile: profileReducer,
+  
 
 });
 

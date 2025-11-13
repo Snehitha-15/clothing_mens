@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { FaFacebook, FaInstagram, FaTwitter, FaCcVisa, FaCcMastercard, FaCcPaypal } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
 import "./footer.css";
 
 const Footer = () => {
@@ -34,24 +34,22 @@ const Footer = () => {
           <Link to="/cart">Cart ({cartItems.length})</Link>
         </div>
 
-        {/* Newsletter + Social Section */}
+        {/* Follow Us Section (moved up before newsletter) */}
         <div className="footer-section">
-          <h4>Newsletter</h4>
-          <div className="footer-newsletter">
-            <input type="email" placeholder="Your email address" />
-            <button>Subscribe</button>
-          </div>
-          <h4 style={{marginTop: '15px'}}>Follow Us</h4>
+          <h4>Follow Us</h4>
           <div className="footer-social">
             <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
             <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
             <a href="https://www.twitter.com" target="_blank" rel="noopener noreferrer"><FaTwitter /></a>
           </div>
-          <h4 style={{marginTop: '15px'}}>Payment Methods</h4>
-          <div className="footer-social">
-            <FaCcVisa size={24} style={{marginRight: '8px'}}/>
-            <FaCcMastercard size={24} style={{marginRight: '8px'}}/>
-            <FaCcPaypal size={24}/>
+        </div>
+
+        {/* Newsletter Section */}
+        <div className="footer-section">
+          <h4>Newsletter</h4>
+          <div className="footer-newsletter">
+            <input type="email" placeholder="Your email address" />
+            <button>Subscribe</button>
           </div>
         </div>
 
