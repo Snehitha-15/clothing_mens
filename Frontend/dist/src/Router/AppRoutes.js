@@ -10,14 +10,16 @@ import {
 import Header from "../components/Header/Header";
 import CheckoutHeader from "../components/Header/CheckoutHeader";
 import Footer from "../components/footer/Footer";
+
 import Products from "../Pages/products/Products";
 import AddressPage from "../Pages/Checkout/Address";
 import PaymentPage from "../Pages/Checkout/Payment";
 import OrderSuccess from "../Pages/Checkout/OrderSuccess";
 import Cart from "../Pages/cart/Cart";
-import ProfilePage from "../components/profile/Profilepage";
-import HomePage from "../Pages/HomePage"; 
+import Login from "../Pages/Login/Login";
+import HomePage from "../Pages/HomePage";
 
+// List of categories
 const categoryList = [
   "Shirts",
   "Pants",
@@ -41,7 +43,7 @@ const AppContent = () => {
     location.pathname === "/address" ||
     location.pathname === "/payment";
 
-  // ✅ When a category is clicked, go to /products and update selectedCategory
+  // When a category is clicked
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     navigate("/products");
@@ -49,6 +51,7 @@ const AppContent = () => {
 
   return (
     <>
+      {/* Render appropriate header */}
       {isCheckoutPage ? (
         <CheckoutHeader />
       ) : (
@@ -65,9 +68,11 @@ const AppContent = () => {
         <Route path="/address" element={<AddressPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/order-success" element={<OrderSuccess />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        {/* <Route path="/profile" element={<ProfilePage />} /> */}
+        <Route path="/login" element={<Login />} />
       </Routes>
 
+      {/* Render footer only for non-checkout pages */}
       {!isCheckoutPage && <Footer />}
     </>
   );
