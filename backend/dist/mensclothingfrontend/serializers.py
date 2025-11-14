@@ -1,34 +1,27 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Category, Product
 from django.contrib.auth import authenticate
 
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('name', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
+def validate_phone(value):
+    if not value.isdigit() or len(value) != 10:
+        raise serializers.ValidationError("Phone number must be exactly 10 digits.")
+    return value
 
-    def create(self, validated_data):
-        user = User.objects.create_user(
-            name=validated_data['name'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        return user
+class SendOTPSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(validators=[validate_phone])
 
-
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
+class VerifyOTPSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(validators=[validate_phone])
+    otp = serializers.CharField()
     
-    def validate(self, data):
-        email = data.get("email", None)
-        password = data.get("password", None)
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug']
 
-        user = authenticate(username=email, password=password)  # ✅ use username param
-        if user is None:
-            raise serializers.ValidationError("Invalid credentials")
+class ProductSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
 
-        data["user"] = user
-        return data
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'description', 'price', 'image', 'category']
