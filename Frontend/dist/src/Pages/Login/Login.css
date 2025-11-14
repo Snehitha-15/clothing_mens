@@ -7,7 +7,6 @@
   
   .login-left {
     flex: 1;
-    background: url("/images/mens-fashion.jpg") center/cover no-repeat;
     color: white;
     display: flex;
     flex-direction: column;

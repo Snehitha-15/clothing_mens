@@ -6,12 +6,11 @@ import { useNavigate } from "react-router-dom";
 import mensBanner from "../assets/images/Banner/mensBanner.jpg";
 import banner2 from "../assets/images/Banner/banner2.jpg";
 import banner3 from "../assets/images/Banner/banner3.jpg";
-import main from "../assets/images/Banner/main.jpg";
 
 const carouselImages = [
-  { id: 1, src: mensBanner, caption: "Trendy Men's Fashion" },
-  { id: 2, src: banner2, caption: "Upgrade Your Wardrobe" },
-  { id: 3, src: banner3, caption: "Shop the Best Styles" },
+  { id: 1, src: mensBanner },
+  { id: 2, src: banner2 },
+  { id: 3, src: banner3 },
 ];
 
 const TopBannerSection = () => {
@@ -28,145 +27,89 @@ const TopBannerSection = () => {
 
   return (
     <div
+      className="top-banner"
       style={{
-        display: "flex",
-        gap: "20px",
-        justifyContent: "center",
-        marginTop: "30px",
-        flexWrap: "wrap",
+        position: "relative",
+        width: "100%",
+        overflow: "hidden",
+        aspectRatio: "16 / 5", 
+        borderRadius: "0px",
       }}
     >
-      {/* 🌀 Left Auto Carousel */}
-      <div
-        style={{
-          flex: 1,
-          maxWidth: "50%",
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: "10px",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-          height: "500px",
-        }}
-      >
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={carouselImages[index].id}
-            src={carouselImages[index].src}
-            alt={carouselImages[index].caption}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.8 }}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: "10px",
-            }}
-          />
-        </AnimatePresence>
-
-        {/* Caption */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "15px",
-            left: "15px",
-            color: "white",
-            fontWeight: "bold",
-            backgroundColor: "rgba(0,0,0,0.4)",
-            padding: "8px 12px",
-            borderRadius: "5px",
-          }}
-        >
-          {carouselImages[index].caption}
-        </div>
-
-        {/* Dots */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: "10px",
-            right: "20px",
-            display: "flex",
-            gap: "5px",
-          }}
-        >
-          {carouselImages.map((_, i) => (
-            <div
-              key={i}
-              onClick={() => setIndex(i)}
-              style={{
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                backgroundColor: i === index ? "white" : "rgba(255,255,255,0.5)",
-                cursor: "pointer",
-              }}
-            ></div>
-          ))}
-        </div>
-      </div>
-
-      {/* 🛍️ Right Static Banner */}
-      <div
-        style={{
-          flex: 1,
-          maxWidth: "50%",
-          position: "relative",
-          borderRadius: "10px",
-          overflow: "hidden",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-          height: "500px",
-        }}
-      >
-        <img
-          src={main}
-          alt="Shop Now Banner"
+      {/* 🌀 Full-width Auto Carousel */}
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={carouselImages[index].id}
+          src={carouselImages[index].src}
+          alt="Men's Fashion Banner"
+          initial={{ opacity: 0, scale: 1.03 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.03 }}
+          transition={{ duration: 0.8 }}
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "fill", // ensures full image is visible
+            objectPosition: "center",
           }}
         />
-        <div
-          style={{
-            position: "absolute",
-            top: "10px",
-            left: "20px",
-            color: "white",
-          }}
-        >
-         <Button
-  onClick={() => navigate("/products")}
-  style={{
-    marginTop: "327px",
-    marginLeft:"651px",
-    fontWeight: "600",
-    width: "258px",
-    height: "65px",
-    border: "none",
-    borderRadius: "20px",
-    background: "linear-gradient(90deg, #141312ff, #474443ff)", // 🔥 Gradient color
-    color: "white",
-    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.3)",
-    cursor: "pointer",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-  }}
-  onMouseEnter={(e) => {
-    e.target.style.transform = "scale(1.05)";
-    e.target.style.boxShadow = "0 6px 14px rgba(0, 0, 0, 0.4)";
-  }}
-  onMouseLeave={(e) => {
-    e.target.style.transform = "scale(1)";
-    e.target.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.3)";
-  }}
->
-  Shop Now
-</Button>
+      </AnimatePresence>
 
-        </div>
+      {/* 🛍️ Shop Now Button */}
+      <Button
+        onClick={() => navigate("/products")}
+        className="banner-button"
+        // onMouseEnter={(e) => {
+        //   e.target.style.transform = "scale(1.05)";
+        //   e.target.style.boxShadow = "0 6px 14px rgba(0, 0, 0, 0.4)";
+        // }}
+        // onMouseLeave={(e) => {
+        //   e.target.style.transform = "scale(1)";
+        //   e.target.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.3)";
+        // }}
+      >
+        Shop Now
+      </Button>
+
+      {/* ⚫ Dots */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "3%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          gap: "8px",
+        }}
+      >
+        {carouselImages.map((_, i) => (
+          <div
+            key={i}
+            onClick={() => setIndex(i)}
+            style={{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              backgroundColor: i === index ? "#fff" : "rgba(255,255,255,0.5)",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+            }}
+          ></div>
+        ))}
       </div>
+
+      {/* 🌈 Optional Gradient Overlay */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: "20%",
+          background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)",
+          pointerEvents: "none",
+        }}
+      ></div>
     </div>
   );
 };

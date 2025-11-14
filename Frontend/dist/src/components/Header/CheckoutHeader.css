@@ -1,0 +1,150 @@
+/* ================= FINAL CHECKOUT HEADER ================= */
+.checkout-header {
+  background-color: #131921;
+  border-bottom: 2px solid #febd69;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1050;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Full-width flex container */
+.checkout-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 100%;
+}
+
+/* Remove blue outline & move logo to the far left */
+.checkout-logo {
+  display: flex;
+  align-items: center;
+  margin-left: 0; /* push logo to left edge */
+}
+
+.logo-link {
+  text-decoration: none;
+  outline: none;
+}
+
+.logo-link:focus,
+.logo-link:active,
+.logo-link:focus-visible {
+  outline: none !important; /* remove blue outline */
+  box-shadow: none !important;
+}
+
+/* Logo text */
+.checkout-logo .checkout-brand {
+  font-size: 22px;
+  font-weight: bold;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+}
+
+.checkout-logo .highlight {
+  color: #febd69;
+}
+
+/* Center Steps */
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: #ddd;
+  flex: 1; /* centers steps */
+  text-align: center;
+}
+
+/* Active and Hover Step */
+.checkout-steps a {
+  color: #ddd;
+  text-decoration: none;
+  padding-bottom: 2px;
+  transition: all 0.3s ease;
+}
+
+.checkout-steps a:hover {
+  color: #febd69;
+}
+
+.checkout-steps a.active {
+  color: #febd69;
+  border-bottom: 2px solid #febd69;
+}
+
+/* Secure aligned to extreme right */
+.checkout-secure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #ddd;
+  margin-right: 0; /* stick to right edge */
+}
+
+.secure-icon {
+  color: #febd69;
+  font-size: 13px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 992px) {
+  .checkout-header {
+    height: auto;
+    padding: 8px 0;
+  }
+
+  .checkout-container {
+    flex-direction: column;
+    padding: 8px 18px;
+    gap: 4px;
+  }
+
+  .checkout-logo {
+    margin-left: 0;
+  }
+
+  .checkout-steps {
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .checkout-secure {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-container {
+    padding: 6px 12px;
+  }
+
+  .checkout-logo .checkout-brand {
+    font-size: 18px;
+  }
+
+  .checkout-steps {
+    font-size: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .checkout-secure {
+    font-size: 11px;
+  }
+}
