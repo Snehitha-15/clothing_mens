@@ -1,11 +1,14 @@
-# dependencies
+# dependencies 
 /node_modules
+node_modules/
+Frontend/node_modules/
+Frontend/dist/node_modules/
 /.pnp
 .pnp.js
 
 # testing
 /coverage
-
+            
 # production
 /build
 /dist

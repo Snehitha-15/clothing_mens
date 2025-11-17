@@ -146,3 +146,32 @@
   margin-top: 6px;
   opacity: 0.9;
 }
+/* Horizontal scroll container */
+.horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 18px;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual scroll card */
+.scroll-card {
+  min-width: 200px;
+}
+
+/* See All text */
+.see-all-text {
+  color: #000;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.see-all-text:hover {
+  color: #ffce54;
+}
+
