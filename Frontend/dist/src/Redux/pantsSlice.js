@@ -25,6 +25,7 @@ const initialState = {
     {
       id: 1,
       name: "Slim Fit Jeans",
+      category: "pants",
       price: 1499,
       image: pant1,
       description: "Classic slim fit jeans for a modern and stylish look."
@@ -32,6 +33,7 @@ const initialState = {
     {
       id: 2,
       name: "Cotton Chinos",
+      category: "pants",
       price: 1299,
       image: pant2,
       description: "Soft cotton chinos perfect for office or casual wear."
@@ -39,6 +41,7 @@ const initialState = {
     {
       id: 3,
       name: "Cargo Pants",
+      category: "pants",
       price: 1599,
       image: pant3,
       description: "Comfortable cargo pants with multiple utility pockets."
@@ -46,6 +49,7 @@ const initialState = {
     {
       id: 4,
       name: "Formal Trousers",
+      category: "pants",
       price: 1799,
       image: pant4,
       description: "Elegant formal trousers designed for business meetings."
@@ -53,6 +57,7 @@ const initialState = {
     {
       id: 5,
       name: "Denim Jeans",
+      category: "pants",
       price: 1399,
       image: pant5,
       description: "Durable denim jeans with a premium finish."
@@ -60,6 +65,7 @@ const initialState = {
     {
       id: 6,
       name: "Track Pants",
+      category: "pants",
       price: 999,
       image: pant6,
       description: "Comfortable track pants perfect for workouts or lounging."
@@ -67,6 +73,7 @@ const initialState = {
     {
       id: 7,
       name: "Slim Tapered Jeans",
+      category: "pants",
       price: 1599,
       image: pant7,
       description: "Tapered jeans offering a sleek and smart appearance."
@@ -74,6 +81,7 @@ const initialState = {
     {
       id: 8,
       name: "Linen Pants",
+      category: "pants",
       price: 1699,
       image: pant8,
       description: "Breathable linen pants ideal for summer comfort."
@@ -81,6 +89,7 @@ const initialState = {
     {
       id: 9,
       name: "Joggers",
+      category: "pants",
       price: 1199,
       image: pant9,
       description: "Stylish joggers made with premium cotton fabric."
@@ -88,6 +97,7 @@ const initialState = {
     {
       id: 10,
       name: "Relaxed Fit Jeans",
+      category: "pants",
       price: 1499,
       image: pant10,
       description: "Relaxed fit jeans for maximum comfort and mobility."
@@ -95,6 +105,7 @@ const initialState = {
     {
       id: 11,
       name: "Khaki Pants",
+      category: "pants",
       price: 1299,
       image: pant11,
       description: "Classic khaki pants suitable for any occasion."
@@ -102,6 +113,7 @@ const initialState = {
     {
       id: 12,
       name: "Slim Fit Formal Pants",
+      category: "pants",
       price: 1799,
       image: pant12,
       description: "Perfectly tailored slim-fit pants for formal events."
@@ -109,6 +121,7 @@ const initialState = {
     {
       id: 13,
       name: "Stretchable Jeans",
+      category: "pants",
       price: 1599,
       image: pant13,
       description: "Comfortable stretchable jeans for all-day wear."
@@ -116,6 +129,7 @@ const initialState = {
     {
       id: 14,
       name: "Casual Shorts",
+      category: "pants",
       price: 999,
       image: pant14,
       description: "Light and stylish shorts for a cool summer look."
@@ -123,6 +137,7 @@ const initialState = {
     {
       id: 15,
       name: "Athletic Pants",
+      category: "pants",
       price: 1399,
       image: pant15,
       description: "Flexible and durable pants designed for active use."
@@ -130,6 +145,7 @@ const initialState = {
     {
       id: 16,
       name: "Twill Trousers",
+      category: "pants",
       price: 1499,
       image: pant16,
       description: "Soft twill trousers with a refined finish for smart casual wear."
@@ -137,6 +153,7 @@ const initialState = {
     {
       id: 17,
       name: "Washed Blue Jeans",
+      category: "pants",
       price: 1599,
       image: pant17,
       description: "Washed blue jeans giving a trendy and rugged appearance."
@@ -144,6 +161,7 @@ const initialState = {
     {
       id: 18,
       name: "Corduroy Pants",
+      category: "pants",
       price: 1699,
       image: pant18,
       description: "Classic corduroy pants perfect for a premium vintage look."

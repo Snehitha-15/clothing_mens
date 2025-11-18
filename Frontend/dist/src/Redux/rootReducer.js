@@ -14,6 +14,7 @@ import blazerReducer from "./blazerSlice";
 import jeansReducer from "./jeansSlice";
 import sweatshirtsReducer from "./sweatshirtSlice";
 import suitsReducer from "./suitSlice"; 
+import wishlistReducer from "./wishlistSlice";
 // import profileReducer from "./profileSlice";
 
 
@@ -31,7 +32,8 @@ const rootReducer = combineReducers({
   blazers: blazerReducer,
   jeans: jeansReducer,
   sweatshirts: sweatshirtsReducer,
-  suits: suitsReducer, 
+  suits: suitsReducer,
+  wishlist: wishlistReducer, 
   // profile: profileReducer,
   
 

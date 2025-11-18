@@ -399,3 +399,13 @@
     order: 3;
   }
 }
+.wishlist-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #ff1744;
+  color: white;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 50%;
+}

@@ -413,6 +413,25 @@ hr {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   transform: translateY(-4px);
 }
+.product-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.product-card:hover {
+  transform: scale(1.03);
+}
+
+@media (max-width: 576px) {
+  .product-card img {
+    height: 220px !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .products-container {
+    padding: 30px 80px;
+  }
+}
 
 
 

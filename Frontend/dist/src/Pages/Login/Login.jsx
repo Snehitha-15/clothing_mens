@@ -1,65 +1,69 @@
-// src/Pages/Login/Login.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import "./Login.css";
 import { useDispatch, useSelector } from "react-redux";
 import { sendOtp, verifyOtp } from "../../Redux/authSlice";
-import "./Login.css";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const dispatch = useDispatch();
-  const { step, loading, error, user } = useSelector(state => state.auth);
+  const navigate = useNavigate();
+  const { step, loading, error, user, mobile } = useSelector((state) => state.auth);
 
-  const [mobile, setMobile] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
 
-  const handleSendOtp = e => {
+  // 🚀 Redirect to HomePage after successful login
+useEffect(() => {
+  if (user) navigate("/");
+}, [user, navigate]);
+
+  const handleSendOtp = (e) => {
     e.preventDefault();
-    dispatch(sendOtp(mobile));
+    dispatch(sendOtp(phone));
   };
 
-  const handleVerifyOtp = e => {
+  const handleVerifyOtp = (e) => {
     e.preventDefault();
-    dispatch(verifyOtp({ mobile, otp }));
+    dispatch(verifyOtp({ mobile: phone || mobile, otp }));
   };
+
+  // 👍 Prevent showing login if already logged in
+  if (user) return null;
 
   return (
     <div className="login-wrapper">
       <div className="login-left">
-        <h1 className="brand-name">Brand</h1>
-        <p className="tagline">Your fashion destination</p>
       </div>
+
       <div className="login-right">
-        {!user ? (
-          <form className="login-form" onSubmit={step === "otp" ? handleVerifyOtp : handleSendOtp}>
-            {step === "mobile" && (
-              <>
-                <h2>Login</h2>
-                <input
-                  type="tel"
-                  placeholder="Enter mobile"
-                  value={mobile}
-                  onChange={e => setMobile(e.target.value)}
-                />
-                <button type="submit">{loading ? "Sending..." : "Send OTP"}</button>
-              </>
-            )}
-            {step === "otp" && (
-              <>
-                <h2>Verify OTP</h2>
-                <input
-                  type="text"
-                  placeholder="Enter OTP"
-                  value={otp}
-                  onChange={e => setOtp(e.target.value)}
-                />
-                <button type="submit">{loading ? "Verifying..." : "Verify OTP"}</button>
-              </>
-            )}
+        {step === "mobile" && (
+          <form onSubmit={handleSendOtp} className="login-form">
+            <h2>Login</h2>
+            <input
+              type="tel"
+              placeholder="Enter phone number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+            />
+            <button type="submit">{loading ? "Sending..." : "Send OTP"}</button>
             {error && <p className="error">{error}</p>}
           </form>
-        ) : (
-          <div className="welcome">
-            Welcome {user.mobile}
-          </div>
+        )}
+
+        {step === "otp" && (
+          <form onSubmit={handleVerifyOtp} className="login-form">
+            <h2>Verify OTP</h2>
+            <input
+              type="text"
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+            <button type="submit">{loading ? "Verifying..." : "Verify OTP"}</button>
+            {error && <p className="error">{error}</p>}
+          </form>
         )}
       </div>
     </div>
