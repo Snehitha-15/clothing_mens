@@ -2,26 +2,25 @@
    HOME PAGE CLEAN MODERN UI
 -------------------------------------------------- */
 
-/* Section Title */
 .section-title {
   font-weight: 700;
   margin-bottom: 20px;
-  font-size: 24px;
+  font-size: 22px;
   border-left: 4px solid #ffce54;
   padding-left: 10px;
 }
 
 /* -------------------------------------------------
-   PRODUCT CARD STYLING
+   PRODUCT CARD + IMAGE RESPONSIVE
 -------------------------------------------------- */
+
 .product-card {
   border: none;
-  border-radius: 14px;
-  overflow: hidden;
-  cursor: pointer;
+  border-radius: 12px;
   background: #fff;
-  transition: all 0.25s ease;
   box-shadow: 0px 4px 14px rgba(0,0,0,0.08);
+  transition: all 0.25s ease;
+  height: 100%;
 }
 
 .product-card:hover {
@@ -30,119 +29,84 @@
 }
 
 .product-image {
-  height: 230px;
+  width: 100%;
+  height: 180px;
   object-fit: cover;
 }
 
 .product-card h6 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  margin-top: 8px;
 }
 
 .product-card p {
-  margin: 5px 0 10px;
+  margin: 4px 0 10px;
+  font-size: 13px;
 }
 
 .product-card button {
+  font-size: 12px;
   padding: 4px 10px;
-  font-size: 13px;
-  border-radius: 8px;
-}
-
-/* Responsive product height */
-@media (min-width: 1200px) {
-  .product-card { height: 330px; }
-  .product-image { height: 190px; }
-}
-@media (max-width: 991px) {
-  .product-card { height: 320px; }
-  .product-image { height: 200px; }
-}
-@media (max-width: 768px) {
-  .product-card { height: auto; }
-  .product-image { height: 210px; }
-}
-@media (max-width: 480px) {
-  .product-image { height: 180px; }
+  border-radius: 6px;
 }
 
 /* -------------------------------------------------
-   PREMIUM BOTTOM BANNERS (Corrected)
+   SEE ALL BUTTON
 -------------------------------------------------- */
-.bottom-banner-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* EXACT 3 on desktop */
-  gap: 28px;
-  margin-top: 20px;
+
+.see-all-text {
+  color: #000;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
-/* Tablet */
+.see-all-text:hover {
+  color: #ffce54;
+}
+
+/* -------------------------------------------------
+   BOTTOM BANNERS (unchanged)
+-------------------------------------------------- */
+
+.bottom-banner-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
 @media (max-width: 992px) {
   .bottom-banner-section {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .bottom-banner-section {
     grid-template-columns: repeat(1, 1fr);
   }
 }
 
-/* Banner card */
 .bottom-banner {
   position: relative;
   height: 220px;
-  overflow: hidden;
   border-radius: 14px;
+  overflow: hidden;
   cursor: pointer;
-  background: #f7f7f7;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.28s ease, box-shadow 0.28s ease;
 }
 
-.bottom-banner:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-
-/* Banner Image */
 .bottom-banner img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(78%);
-  transition: transform 0.45s ease;
+  filter: brightness(80%);
 }
 
-.bottom-banner:hover img {
-  transform: scale(1.08);
-}
-
-/* Overlay */
 .banner-overlay {
   position: absolute;
   bottom: 0;
   width: 100%;
-  padding: 16px 20px;
-  background: linear-gradient(
-    to top,
-    rgba(0,0,0,0.55),
-    rgba(0,0,0,0)
-  );
-  color: white;
-  text-align: left;
-}
-
-.banner-overlay h4 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.banner-overlay p {
-  font-size: 13px;
-  margin-top: 6px;
-  opacity: 0.9;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  color: #fff;
 }

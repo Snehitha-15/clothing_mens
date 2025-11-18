@@ -1,0 +1,7 @@
+{
+  "auth": {
+    "sendOtp": "/api/send-otp/",
+    "login": "/api/login/",
+    "logout": "/api/logout/"
+  }
+}
