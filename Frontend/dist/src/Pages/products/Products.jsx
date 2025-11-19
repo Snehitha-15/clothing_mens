@@ -25,13 +25,8 @@ const Products = ({ selectedCategory }) => {
   const state = useSelector((state) => state);
 
   const categoryMap = {
-    shirts: state.shirts.shirts,
-    pants: state.pants.pants,
     jeans: state.jeans.jeans,
-    blazers: state.blazers.blazers,
     jackets: state.jackets.jackets,
-    suits: state.suits.suits,
-    shorts: state.shorts.shorts,
     tshirts: state.tshirts.tshirts,
     sweaters: state.sweaters.sweaters,
     sweatshirts: state.sweatshirts.sweatshirts,
@@ -43,13 +38,8 @@ const Products = ({ selectedCategory }) => {
     "t shirts": "tshirts",
     "sweatshirts": "sweatshirts",
     "sweat shirts": "sweatshirts",
-    shirts: "shirts",
-    pants: "pants",
     jeans: "jeans",
-    blazers: "blazers",
     jackets: "jackets",
-    suits: "suits",
-    shorts: "shorts",
     sweaters: "sweaters",
   };
 

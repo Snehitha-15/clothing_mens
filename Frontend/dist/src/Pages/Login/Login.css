@@ -7,7 +7,7 @@
 
 .login-left {
   flex: 1;
-  background: url("../../assets/images/Banner/banner2.jpg") center/cover no-repeat;
+  background: url("../../assets/images/Banner/login.jpg") center/cover no-repeat;
   color: white;
   display: flex;
   flex-direction: column;

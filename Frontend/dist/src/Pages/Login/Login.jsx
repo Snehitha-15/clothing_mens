@@ -38,11 +38,12 @@ useEffect(() => {
       <div className="login-right">
         {step === "mobile" && (
           <form onSubmit={handleSendOtp} className="login-form">
-            <h2>Login</h2>
+            <h2 align="center">Login</h2>
             <input
               type="tel"
               placeholder="Enter phone number"
               value={phone}
+              className="mb-2"
               onChange={(e) => setPhone(e.target.value)}
               required
             />
@@ -53,9 +54,10 @@ useEffect(() => {
 
         {step === "otp" && (
           <form onSubmit={handleVerifyOtp} className="login-form">
-            <h2>Verify OTP</h2>
+            <h2 align="center">Verify OTP</h2>
             <input
               type="text"
+              className="mb-2"
               placeholder="Enter OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}

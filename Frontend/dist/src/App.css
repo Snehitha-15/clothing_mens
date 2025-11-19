@@ -264,12 +264,12 @@
 }
 
 .method-card.selected {
-  border: 2px solid #ff3f6c;
+  border: 2px solid #484647;
   background: #fff5f7;
 }
 
 .place-order-btn {
-  background: #ff3f6c;
+  background: #2d2c2d;
   color: white;
   width: 100%;
   padding: 14px;
@@ -283,7 +283,7 @@
 }
 
 .place-order-btn:hover {
-  background: #e73360;
+  background: #4f4d4d;
 }
 
 /* Right Section (Summary) */
@@ -325,7 +325,7 @@ hr {
 }
 .address-summary {
   background: #f8f9fa;
-  border-left: 4px solid #ff3f6c;
+  border-left: 4px solid #312e2f;
   margin-bottom: 20px;
   padding: 15px 20px;
   border-radius: 6px;
@@ -337,7 +337,7 @@ hr {
   font-weight: 600;
   margin-bottom: 20px;
   color: #222;
-  border-bottom: 2px solid #ff3f6c;
+  border-bottom: 2px solid #3a3838;
   display: inline-block;
   padding-bottom: 5px;
 }

@@ -127,22 +127,22 @@ const HomePage = () => {
           setShowMore={setShowMoreSpecial}
         />
 
-        <div className="bottom-banner-section mt-5">
-          {bottomBanners.map((banner) => (
-            <motion.div
-              key={banner.id}
-              className="bottom-banner"
-              whileHover={{ scale: 1.03 }}
-              onClick={() => navigate(`/products/${banner.category}`)}
-            >
-              <img src={banner.image} alt={banner.title} />
-              <div className="banner-overlay">
-                <h4>{banner.title}</h4>
-                <p>Explore our selection of premium men’s collection</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <div className="bottom-banner-section">
+        {bottomBanners.map((banner) => (
+        <motion.div
+         key={banner.id}
+         className="bottom-banner mb-4"
+         whileHover={{ scale: 1.02 }}
+         onClick={() => navigate(`/products/${banner.category}`)}
+        >
+         <img src={banner.image} alt={banner.title} />
+         <div className="banner-overlay">
+         <h4>{banner.title}</h4>
+         <p>Explore our selection of premium men’s collection</p>
+       </div>
+     </motion.div>
+   ))}
+  </div>
 
       </Container>
     </div>

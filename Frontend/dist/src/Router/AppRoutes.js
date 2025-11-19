@@ -24,8 +24,8 @@ import ProtectedRoute from "../ProtectedRoute";
 import { useSelector } from "react-redux";
 
 const categoryList = [
-  "Shirts", "Pants", "T-Shirts", "Sweaters", "Shorts",
-  "Jackets", "Jeans", "Sweatshirts", "Blazers", "Suits"
+ "T-Shirts", "Sweaters", 
+  "Jackets", "Jeans", "Sweatshirts"
 ];
 
 const AppContent = () => {
@@ -40,7 +40,7 @@ const AppContent = () => {
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    setSearchQuery(""); // 🔥 Clear search when category is selected
+    setSearchQuery(""); 
     navigate("/products");
   };
 
@@ -52,7 +52,7 @@ const AppContent = () => {
           categories={categoryList}
           onCategorySelect={handleCategorySelect}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery} // 🔥 Now Header can update search
+          setSearchQuery={setSearchQuery} 
         />
       )}
 
@@ -76,7 +76,7 @@ const AppContent = () => {
             <ProtectedRoute>
               <Products
                 selectedCategory={selectedCategory}
-                searchQuery={searchQuery} // 🔥 Now search comes here
+                searchQuery={searchQuery} 
               />
             </ProtectedRoute>
           }
