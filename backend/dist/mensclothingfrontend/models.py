@@ -53,9 +53,20 @@ class PhoneOTP(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='subcategories'
+    )
+
+    class Meta:
+        verbose_name_plural = "Categories"
 
     def __str__(self):
         return self.name
+
 
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')

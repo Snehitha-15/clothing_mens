@@ -26,11 +26,9 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'slug')
+    list_display = ('id', 'name', 'slug', 'parent')
+    list_filter = ('parent',)
     search_fields = ('name',)
-    prepopulated_fields = {'slug': ('name',)}  # auto-fill slug from name
-    ordering = ('id',)
-
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

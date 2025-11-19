@@ -91,8 +91,9 @@ class LogoutView(generics.GenericAPIView):
             return Response({"error": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryListView(generics.ListAPIView):
-    queryset = Category.objects.all()
+    queryset = Category.objects.filter(parent__isnull=True)
     serializer_class = CategorySerializer
+
 class CategoryDetailView(generics.RetrieveAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -103,12 +104,20 @@ class ProductListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Product.objects.all()
-        category_name = self.request.query_params.get('category')
 
-        if category_name:
-            queryset = queryset.filter(category__name__iexact=category_name)
+        sub = self.request.query_params.get("subcategory")
+        main = self.request.query_params.get("category")
+
+        # Filter by subcategory
+        if sub:
+            queryset = queryset.filter(category__slug=sub)
+
+        # Filter products by parent category
+        if main:
+            queryset = queryset.filter(category__parent__slug=main)
 
         return queryset
+
     
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()

@@ -14,10 +14,19 @@ class VerifyOTPSerializer(serializers.Serializer):
     phone_number = serializers.CharField(validators=[validate_phone])
     otp = serializers.CharField()
     
-class CategorySerializer(serializers.ModelSerializer):
+class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    subcategories = SubCategorySerializer(many=True)
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'subcategories']
+
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(read_only=True, slug_field='name')
