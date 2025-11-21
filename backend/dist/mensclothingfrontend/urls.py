@@ -1,13 +1,14 @@
 from django.urls import path
 from .views import (
-    SendOTPView, VerifyOTPView, LogoutView, CategoryListView, CategoryDetailView, ProductListView, ProductDetailView, ReduceStockView, 
+    LoginView, SignupView, LogoutView, ResetPasswordView, CategoryListView, CategoryDetailView, ProductListView, ProductDetailView, ReduceStockView, 
     BannerListView, WishlistListCreateView, WishlistRemoveView,CartDetailView, CartAddUpdateView, CartRemoveItemView,AddressListCreateView, 
     AddressDetailView, CreateOrderView, ProfileView, CreateRazorpayOrderView, VerifyPaymentView
-) 
+    ) 
    
 urlpatterns = [
-    path('send-otp/', SendOTPView.as_view(), name='register'),
-    path('login/', VerifyOTPView.as_view(), name='login'),
+    path('signup/',SignupView.as_view(), name='sigup'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('reset/', ResetPasswordView.as_view(), name='reset'),
     path('categories/', CategoryListView.as_view(), name='category-list'),
     path('categories/<int:pk>/', CategoryDetailView.as_view(), name='category-detail'),
     path('products/', ProductListView.as_view(), name='product-list'),

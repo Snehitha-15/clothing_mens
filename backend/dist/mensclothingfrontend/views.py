@@ -1,3 +1,4 @@
+import uuid
 import random
 import razorpay
 from django.conf import settings
@@ -6,70 +7,270 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, PhoneOTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
-from .serializers import SendOTPSerializer, VerifyOTPSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer
+from .models import User, SignupSession, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .serializers import SignupSerializer, LoginSerializer,ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
+from .utils import send_email_otp, send_phone_otp
 from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+User = get_user_model()
 
-def generate_otp():
-    return str(random.randint(100000, 999999))
-
-
-class SendOTPView(generics.GenericAPIView):
-    serializer_class = SendOTPSerializer
-
+class SignupView(APIView):
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        phone = serializer.validated_data['phone_number']
-        otp = generate_otp()
+        step = data.get("step")
 
-        PhoneOTP.objects.update_or_create(
-            phone_number=phone,
-            defaults={'otp': otp}
+        # 1️⃣ STEP — SEND EMAIL OTP
+        if step == "email":
+            email = data["email"]
+            session, _ = SignupSession.objects.get_or_create(email=email)
+
+            if session.is_expired():
+                session.delete()
+                session = SignupSession.objects.create(email=email)
+
+            send_email_otp(email)
+
+            return Response({
+                "message": "Email OTP sent",
+                "signup_token": str(session.token)
+            })
+
+        # 2️⃣ STEP — VERIFY EMAIL OTP
+        if step == "verify_email":
+            token = data["signup_token"]
+            email_otp = data["email_otp"]
+
+            session = get_object_or_404(SignupSession, token=token)
+
+            otp_obj = OTP.objects.filter(email=session.email).latest('created_at')
+
+            if otp_obj.is_expired():
+                return Response({"error": "OTP expired"}, status=400)
+            if otp_obj.code != email_otp:
+                return Response({"error": "Incorrect OTP"}, status=400)
+
+            session.email_verified = True
+            session.save()
+
+            return Response({
+                "message": "Email verified",
+                "signup_token": str(session.token)
+            })
+
+        # 3️⃣ STEP — SEND PHONE OTP
+        if step == "phone":
+            token = data["signup_token"]
+            phone = data["phone"]
+
+            session = get_object_or_404(SignupSession, token=token)
+
+            if not session.email_verified:
+                return Response({"error": "Email not verified"}, status=400)
+
+            session.phone = phone
+            session.save()
+
+            send_phone_otp(phone)
+
+            return Response({
+                "message": "Phone OTP sent",
+                "signup_token": str(session.token)
+            })
+
+        # 4️⃣ STEP — VERIFY PHONE OTP
+        if step == "verify_phone":
+            token = data["signup_token"]
+            phone_otp = data["phone_otp"]
+
+            session = get_object_or_404(SignupSession, token=token)
+
+            otp_obj = OTP.objects.filter(phone_number=session.phone).latest("created_at")
+
+            if otp_obj.is_expired():
+                return Response({"error": "OTP expired"}, status=400)
+            if otp_obj.code != phone_otp:
+                return Response({"error": "Incorrect OTP"}, status=400)
+
+            session.phone_verified = True
+            session.save()
+
+            return Response({"message": "Phone verified", "signup_token": str(session.token)})
+
+        # 5️⃣ STEP — SET PASSWORD AND CREATE USER
+        if step == "set_password":
+            token = data["signup_token"]
+            password = data["password"]
+            password2 = data["password2"]
+            username = data["username"]
+
+            session = get_object_or_404(SignupSession, token=token)
+
+            if password != password2:
+                return Response({"error": "Passwords do not match"}, status=400)
+
+            if not (session.email_verified and session.phone_verified):
+                return Response({"error": "Complete verification first"}, status=400)
+
+    # prevent duplicate user
+            if User.objects.filter(email=session.email).exists():
+                return Response({"error": "Email already exists"}, status=400)
+            if User.objects.filter(phone_number=session.phone).exists():
+                return Response({"error": "Phone already registered"}, status=400)
+
+    # create the user
+        user = User.objects.create_user(
+            email=session.email,
+            phone_number=session.phone,
+            password=password
         )
+        user.username = username
+        user.save()
 
-        # In real world → integrate with SMS API here
-        print("OTP sent:", otp)
+        session.delete()
 
-        return Response({"message": "OTP sent successfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "Account created successfully"})
 
 
-class VerifyOTPView(generics.GenericAPIView):
-    serializer_class = VerifyOTPSerializer
-
+class LoginView(APIView):
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
+        serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        phone = serializer.validated_data['phone_number']
-        otp = serializer.validated_data['otp']
+        identifier = serializer.validated_data['identifier']
+        password = serializer.validated_data['password']
 
         try:
-            otp_obj = PhoneOTP.objects.get(phone_number=phone)
-        except PhoneOTP.DoesNotExist:
-            return Response({"error": "Phone number not found"}, status=400)
+            if "@" in identifier:
+                user_obj = User.objects.get(email=identifier)
+            else:
+                user_obj = User.objects.get(phone_number=identifier)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
 
-        # Check OTP match
-        if otp_obj.otp != otp:
-            return Response({"error": "Incorrect OTP"}, status=400)
+        user = authenticate(request, email=user_obj.email, password=password)
 
-        # Create user permanently if not exists
-        user, created = User.objects.get_or_create(phone_number=phone)
+        if not user:
+            return Response({"error": "Invalid credentials"}, status=400)
 
-        # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            "message": "OTP verified successfully",
             "refresh": str(refresh),
             "access": str(refresh.access_token)
-        }, status=200)
-        
-# LOGOUT VIEW
+        })
+
+
+class ResetPasswordView(APIView):
+    reset_sessions = {}  # store temporary reset tokens
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        step = data.get("step")
+
+        # 🔹 STEP 1 — SEND OTP
+        if step == "send_otp":
+            identifier = data["identifier"]
+
+            # find user
+            try:
+                if "@" in identifier:
+                    user = User.objects.get(email=identifier)
+                    send_email_otp(user.email)
+                else:
+                    user = User.objects.get(phone_number=identifier)
+                    send_phone_otp(user.phone_number)
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=404)
+
+            reset_token = str(uuid.uuid4())
+            self.reset_sessions[reset_token] = {
+                "identifier": identifier,
+                "verified": False,
+                "created_at": timezone.now()
+            }
+
+            return Response({
+                "message": "OTP sent",
+                "reset_token": reset_token
+            })
+
+        # 🔹 STEP 2 — VERIFY OTP
+        if step == "verify_otp":
+            reset_token = data["reset_token"]
+            otp = data["otp"]
+
+            if reset_token not in self.reset_sessions:
+                return Response({"error": "Invalid or expired reset token"}, status=400)
+
+            session = self.reset_sessions[reset_token]
+
+            identifier = session["identifier"]
+
+            try:
+                if "@" in identifier:
+                    otp_obj = OTP.objects.filter(email=identifier).latest("created_at")
+                else:
+                    otp_obj = OTP.objects.filter(phone_number=identifier).latest("created_at")
+            except OTP.DoesNotExist:
+                return Response({"error": "OTP not found"}, status=404)
+
+            if otp_obj.is_expired():
+                return Response({"error": "OTP expired"}, status=400)
+
+            if otp_obj.code != otp:
+                return Response({"error": "Invalid OTP"}, status=400)
+
+            session["verified"] = True
+
+            return Response({
+                "message": "OTP verified",
+                "reset_token": reset_token
+            })
+
+        # 🔹 STEP 3 — RESET PASSWORD
+        if step == "reset_password":
+            reset_token = data["reset_token"]
+            password = data["password"]
+            password2 = data["password2"]
+
+            if reset_token not in self.reset_sessions:
+                return Response({"error": "Invalid or expired reset token"}, status=400)
+
+            session = self.reset_sessions[reset_token]
+
+            if not session["verified"]:
+                return Response({"error": "OTP not verified"}, status=400)
+
+            if password != password2:
+                return Response({"error": "Passwords do not match"}, status=400)
+
+            identifier = session["identifier"]
+
+            # find user
+            if "@" in identifier:
+                user = User.objects.get(email=identifier)
+            else:
+                user = User.objects.get(phone_number=identifier)
+
+            user.set_password(password)
+            user.save()
+
+            del self.reset_sessions[reset_token]
+
+            return Response({"message": "Password reset successful"})
+
+        return Response({"error": "Invalid step"}, status=400)
+    
 class LogoutView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 

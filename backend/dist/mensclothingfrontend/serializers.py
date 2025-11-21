@@ -1,19 +1,50 @@
 from rest_framework import serializers
-from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .models import User, SignupSession, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
 
-def validate_phone(value):
-    if not value.isdigit() or len(value) != 10:
-        raise serializers.ValidationError("Phone number must be exactly 10 digits.")
-    return value
+User = get_user_model()
 
-class SendOTPSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(validators=[validate_phone])
+class SignupSerializer(serializers.Serializer):
+    step = serializers.CharField()
 
-class VerifyOTPSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(validators=[validate_phone])
-    otp = serializers.CharField()
-    
+    # step 1
+    email = serializers.EmailField(required=False)
+
+    # step 2
+    email_otp = serializers.CharField(required=False)
+
+    # step 3
+    phone = serializers.CharField(required=False)
+
+    # step 4
+    phone_otp = serializers.CharField(required=False)
+
+    # step 5 — set password + username
+    username = serializers.CharField(required=False)
+    password = serializers.CharField(required=False)
+    password2 = serializers.CharField(required=False)
+
+    signup_token = serializers.CharField(required=False)
+
+class LoginSerializer(serializers.Serializer):
+    identifier = serializers.CharField()
+    password = serializers.CharField()
+
+class ResetPasswordSerializer(serializers.Serializer):
+    step = serializers.CharField()
+
+    # step 1: send otp
+    identifier = serializers.CharField(required=False)  # email or phone
+
+    # step 2: verify otp
+    otp = serializers.CharField(required=False)
+
+    # step 3: set password
+    reset_token = serializers.CharField(required=False)
+    password = serializers.CharField(required=False)
+    password2 = serializers.CharField(required=False)
+
 class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
