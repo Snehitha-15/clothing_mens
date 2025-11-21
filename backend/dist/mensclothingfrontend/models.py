@@ -1,55 +1,82 @@
+import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-
-User = settings.AUTH_USER_MODEL
+from datetime import timedelta  
 
 class UserManager(BaseUserManager):
-    def create_user(self, phone_number, password=None):
-        user = self.model(phone_number=phone_number)
-        if password:
-            user.set_password(password)
-        user.is_active = True
+    def create_user(self, email, phone_number, password=None, **extra_fields):
+        if not email:
+            raise ValueError("Email is required")
+        if not phone_number:
+            raise ValueError("Phone number is required")
+
+        email = self.normalize_email(email)
+
+        user = self.model(
+            email=email,
+            phone_number=phone_number,
+            **extra_fields
+        )
+
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, phone_number, password):
-        user = self.create_user(phone_number, password)
-        user.is_staff = True
-        user.is_superuser = True
-        user.is_admin = True
-    #  IMPORTANT: without this, admin login FAILS
-        user.save(using=self._db)
-        return user
+    def create_superuser(self, email, phone_number, password=None, **extra_fields):
+        extra_fields.setdefault('is_admin', True)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
 
-class User(AbstractBaseUser):
-    phone_number = models.CharField(max_length=10, unique=True)
+        return self.create_user(email, phone_number, password, **extra_fields)
+
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(max_length=150, default="", blank=True)
+    email = models.EmailField(unique=True, default="")
+    phone_number = models.CharField(max_length=15, unique=True)
+
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)     # required for admin login
-    is_superuser = models.BooleanField(default=False) # required for admin login
-    USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = []
+    is_staff = models.BooleanField(default=False)   # needed for admin login
+    is_superuser = models.BooleanField(default=False)
 
-    objects = UserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["phone_number"]
+
+    objects = UserManager()   # <-- THIS FIXES YOUR ERROR
 
     def __str__(self):
-        return self.phone_number
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser
-
-    def has_module_perms(self, app_label):
-        return self.is_superuser
+        return self.email
     
-class PhoneOTP(models.Model):
-    phone_number = models.CharField(max_length=10, unique=True)
-    otp = models.CharField(max_length=6)
+class SignupSession(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    email = models.EmailField()
+    email_verified = models.BooleanField(default=False)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    phone_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def is_expired(self):
+        # session valid for 60 minutes
+        return timezone.now() > self.created_at + timedelta(hours=1)
+
     def __str__(self):
-        return f"{self.phone_number} - {self.otp}"
-    
+        return f"{self.email} - {self.token}"
+
+
+class OTP(models.Model):
+    email = models.EmailField(null=True, blank=True)
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(minutes=5)
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
@@ -79,11 +106,12 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} ({self.category.name})"
 
+
 class Banner(models.Model):
     title = models.CharField(max_length=150, blank=True)
     image = models.ImageField(upload_to='banners/')
-    link = models.URLField(blank=True, null=True)  # optional target when clicking banner
-    order = models.PositiveSmallIntegerField(default=0)  # for ordering banners
+    link = models.URLField(blank=True, null=True)
+    order = models.PositiveSmallIntegerField(default=0)
     active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -91,7 +119,7 @@ class Banner(models.Model):
 
 
 class WishlistItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist_items')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlist_items')
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -104,7 +132,7 @@ class WishlistItem(models.Model):
 
 
 class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def total_price(self):
@@ -125,7 +153,7 @@ class CartItem(models.Model):
 
 
 class Address(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='addresses')
     full_name = models.CharField(max_length=120)
     phone = models.CharField(max_length=20)
     address_line1 = models.CharField(max_length=255)
@@ -149,16 +177,17 @@ class Order(models.Model):
         ('OTHER', 'Other'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=12, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     paid = models.BooleanField(default=False)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='COD')
-    payment_reference = models.CharField(max_length=255, blank=True, null=True)  # gateway txn id
+    payment_reference = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"Order #{self.pk} - {self.user}"
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
