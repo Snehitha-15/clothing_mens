@@ -3,5 +3,14 @@
     "sendOtp": "/api/send-otp/",
     "login": "/api/login/",
     "logout": "/api/logout/"
+  },
+  "Categories":{
+    "categories":"/api/categories",
+    "category":"api/categories/:id/"
+  },
+  "Products":{
+    "products":"/api/products/",
+    "product":"/api/products/:id",
+    "buy":"/api/products/:id/buy"
   }
-}
+} 
