@@ -95,8 +95,10 @@ const HomePage = () => {
                   <CardImg src={item.image} alt={item.name} className="product-image" />
                   <CardBody className="text-center">
                     <CardTitle tag="h6">{item.name}</CardTitle>
-                    <p className="text-muted">₹{item.price}</p>
+                    <div className="d-flex justify-content-between align-items-center mt-4">
+                    <p className="text-dark fw-bold" size="md">₹{item.price}</p>
                     <Button color="dark" size="sm">Add to Cart</Button>
+                    </div>
                   </CardBody>
                 </Card>
               </motion.div>

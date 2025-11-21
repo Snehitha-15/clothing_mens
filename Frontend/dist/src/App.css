@@ -433,7 +433,222 @@ hr {
   }
 }
 
+.product-card {
+  width: 100%;
+  max-width: 250px; /* reduced width */
+  margin: auto;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 360px; /* reduced height */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+.img-container {
+  width: 100%;
+  height: 180px; /* limit image height */
+  overflow: hidden;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.product-desc {
+  font-size: 13px;
+  color: gray;
+  min-height: 30px;
+}
+
+.price {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+button {
+  border-radius: 5px !important;
+  padding: 4px 10px;
+}
+.product-card {
+  width: 100%;
+  max-width: 270px; /* ⬆ Slightly bigger now */
+  margin: auto;
+  border-radius: 14px;
+  overflow: hidden;
+  background: white;
+  height: 390px; /* ⬆ Increased height */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+
+.img-container {
+  height: 75%; /* ⬆ More image space */
+  overflow: hidden;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-bottom: 1px solid #eee;
+}
+
+.product-body {
+  height: 25%;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.product-desc {
+  font-size: 13px;
+  color: gray;
+  margin-bottom: 8px;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+.add-btn {
+  background: black;
+  color: white;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.add-btn:hover {
+  background: #444;
+}
 
 
 
 
+.products-container {
+  padding: 20px;
+}
+
+/* Ensure cards align from left and reduce space */
+.products-container .row {
+  margin: 0 !important;
+  justify-content: flex-start !important;
+}
+
+/* Reduce unwanted side padding */
+.products-container .col {
+  padding: 8px !important;
+}
+
+/* Perfect card size for desktop */
+.product-card {
+  width: 100%;
+  max-width: 280px;
+  margin: auto;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Fix image height and cropping */
+.product-img-wrapper {
+  height: 350px;
+  overflow: hidden;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Body styling */
+.product-body {
+  padding: 10px 12px;
+}
+
+/* Description style */
+.product-desc {
+  font-size: 13px;
+  color: #666;
+  height: 40px;
+}
+
+/* Add to cart pill button */
+.add-btn {
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 13px;
+}
+
+/* PRICE FIX */
+.price {
+  font-size: 15px;
+}
+
+/* ===== 📱 RESPONSIVE FIXES ===== */
+@media (max-width: 992px) {   /* Tablets */
+  .product-card {
+    max-width: 340px;
+  }
+  .product-img-wrapper {
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {   /* Mobile Large */
+  .product-card {
+    max-width: 100% !important;
+  }
+  .product-img-wrapper {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {   /* Mobile small */
+  .product-img-wrapper {
+    height: 220px;
+  }
+  .add-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}

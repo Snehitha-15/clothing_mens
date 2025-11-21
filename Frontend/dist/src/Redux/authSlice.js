@@ -13,7 +13,7 @@ export const sendOtp = createAsyncThunk(
   async (mobile, thunkAPI) => {
     try {
       const response = await API.post(endpoints.auth.sendOtp, {
-        phone_number: mobile, // 🔥 FIXED KEY
+        phone_number: mobile,
       });
       return { mobile };
     } catch (err) {

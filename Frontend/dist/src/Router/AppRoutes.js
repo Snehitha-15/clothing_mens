@@ -1,5 +1,5 @@
 // src/Router/AppRoutes.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -21,38 +21,44 @@ import Cart from "../Pages/cart/Cart";
 import HomePage from "../Pages/HomePage";
 import Login from "../Pages/Login/Login";
 import ProtectedRoute from "../ProtectedRoute";
-import { useSelector } from "react-redux";
 
-const categoryList = [
- "T-Shirts", "Sweaters", 
-  "Jackets", "Jeans", "Sweatshirts"
-];
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCategories } from "../Redux/categorySlice";
+import { fetchProducts } from "../Redux/productSlice";
 
 const AppContent = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");  // 🔥 ADDED HERE
+  const [selectedCategory, setSelectedCategory] = useState(null);   // subcategory name
+  const [searchQuery, setSearchQuery] = useState("");
 
   const location = useLocation();
-  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { user } = useSelector((state) => state.auth);
+  const { tree: categoriesTree } = useSelector((state) => state.categories);
 
   const isCheckoutPage = ["/cart", "/address", "/payment"].includes(location.pathname);
 
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-    setSearchQuery(""); 
+  useEffect(() => {
+    dispatch(fetchCategories());
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  // Called when user picks subcategory from dropdown (e.g. "Shirt")
+  const handleCategorySelect = (subcategoryName) => {
+    setSelectedCategory(subcategoryName);
+    setSearchQuery("");
     navigate("/products");
   };
 
   return (
     <>
-      {/* Header (send searchQuery & setSearchQuery to Header) */}
       {user && !isCheckoutPage && (
         <Header
-          categories={categoryList}
-          onCategorySelect={handleCategorySelect}
+          categoriesTree={categoriesTree}
+          onSubCategorySelect={handleCategorySelect}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery} 
+          setSearchQuery={setSearchQuery}
         />
       )}
 
@@ -76,16 +82,44 @@ const AppContent = () => {
             <ProtectedRoute>
               <Products
                 selectedCategory={selectedCategory}
-                searchQuery={searchQuery} 
+                searchQuery={searchQuery}
               />
             </ProtectedRoute>
           }
         />
 
-        <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-        <Route path="/address" element={<ProtectedRoute><AddressPage /></ProtectedRoute>} />
-        <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
-        <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/address"
+          element={
+            <ProtectedRoute>
+              <AddressPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <PaymentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success"
+          element={
+            <ProtectedRoute>
+              <OrderSuccess />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       {user && !isCheckoutPage && <Footer />}
