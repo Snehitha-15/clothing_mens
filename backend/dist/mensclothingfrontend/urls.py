@@ -1,12 +1,11 @@
 from django.urls import path
-from .views import (
-    LoginView, SignupView, LogoutView, ResetPasswordView, CategoryListView, CategoryDetailView, ProductListView, ProductDetailView, ReduceStockView, 
-    BannerListView, WishlistListCreateView, WishlistRemoveView,CartDetailView, CartAddUpdateView, CartRemoveItemView,AddressListCreateView, 
-    AddressDetailView, CreateOrderView, ProfileView, CreateRazorpayOrderView, VerifyPaymentView
-    ) 
-   
+from .views import (LoginView, SignupView, LogoutView, ResetPasswordView, CategoryListView, CategoryDetailView, ProductListView, ProductDetailView, 
+    ReduceStockView, BannerListView, WishlistListCreateView, WishlistRemoveView,CartDetailView, CartAddUpdateView, CartRemoveItemView, AddressListCreateView, 
+    AddressDetailView, CreateOrderView, ProfileView,VerifyPaymentView, 
+)
+
 urlpatterns = [
-    path('signup/',SignupView.as_view(), name='sigup'),
+    path('signup/', SignupView.as_view(), name='sigup'),
     path('login/', LoginView.as_view(), name='login'),
     path('reset/', ResetPasswordView.as_view(), name='reset'),
     path('categories/', CategoryListView.as_view(), name='category-list'),
@@ -24,7 +23,7 @@ urlpatterns = [
     path('addresses/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
     path('checkout/', CreateOrderView.as_view(), name='create-order'),
     path('profile/', ProfileView.as_view(), name='profile'),  
-    path("razorpay/create-order/", CreateRazorpayOrderView.as_view()),
     path("razorpay/verify/", VerifyPaymentView.as_view()),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view(), name='logout')
 ]
+

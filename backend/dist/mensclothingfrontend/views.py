@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, SignupSession, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
-from .serializers import SignupSerializer, LoginSerializer,ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer
+from .models import User, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
@@ -17,127 +17,122 @@ from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.db import transaction
+
 User = get_user_model()
+
 
 class SignupView(APIView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
 
-        step = data.get("step")
+        step = serializer.validated_data["step"]
 
-        # 1️⃣ STEP — SEND EMAIL OTP
         if step == "email":
-            email = data["email"]
-            session, _ = SignupSession.objects.get_or_create(email=email)
+            email = serializer.validated_data.get("email")
 
-            if session.is_expired():
-                session.delete()
-                session = SignupSession.objects.create(email=email)
+    # check duplicate BEFORE creating user
+            if User.objects.filter(email=email).exists():
+                return Response({"error": "Email already exists"}, status=400)
 
-            send_email_otp(email)
+    # create temporary user
+            user = User.objects.create(
+             email=email,
+             email_otp=serializer.generate_otp(),
+             otp_created_at=timezone.now(),
+            )
 
+            print("EMAIL OTP:", user.email_otp)  # SEND EMAIL HERE
             return Response({
                 "message": "Email OTP sent",
-                "signup_token": str(session.token)
+                "signup_token": str(user.signup_token)
             })
 
-        # 2️⃣ STEP — VERIFY EMAIL OTP
-        if step == "verify_email":
-            token = data["signup_token"]
-            email_otp = data["email_otp"]
+        if step == "email_verification":
+            signup_token = serializer.validated_data.get("signup_token")
+            email_otp = serializer.validated_data.get("email_otp")
 
-            session = get_object_or_404(SignupSession, token=token)
+            user = User.objects.get(signup_token=signup_token)
 
-            otp_obj = OTP.objects.filter(email=session.email).latest('created_at')
+            if user.email_otp != email_otp:
+                return Response({"error": "Invalid OTP"}, status=400)
 
-            if otp_obj.is_expired():
+            if user.is_otp_expired():
                 return Response({"error": "OTP expired"}, status=400)
-            if otp_obj.code != email_otp:
-                return Response({"error": "Incorrect OTP"}, status=400)
 
-            session.email_verified = True
-            session.save()
+            user.email_verified = True
+            user.email_otp = None
+            user.save()
 
-            return Response({
-                "message": "Email verified",
-                "signup_token": str(session.token)
-            })
+            return Response({"message": "Email verified"})
 
         # 3️⃣ STEP — SEND PHONE OTP
-        if step == "phone":
-            token = data["signup_token"]
-            phone = data["phone"]
+        if step == "phone_number":
+            signup_token = serializer.validated_data.get("signup_token")
+            phone = serializer.validated_data.get("phone_number")
 
-            session = get_object_or_404(SignupSession, token=token)
+            user = User.objects.get(signup_token=signup_token)
 
-            if not session.email_verified:
-                return Response({"error": "Email not verified"}, status=400)
+            if User.objects.filter(phone_number=phone).exists():
+                return Response({"error": "Phone already exists"}, status=400)
 
-            session.phone = phone
-            session.save()
+            user.phone_number = phone
+            user.phone_otp = serializer.generate_otp(serializer)
+            user.otp_created_at = timezone.now()
+            user.save()
 
-            send_phone_otp(phone)
+            print("PHONE OTP:", user.phone_otp)  # SEND SMS HERE
 
-            return Response({
-                "message": "Phone OTP sent",
-                "signup_token": str(session.token)
-            })
+            return Response({"message": "OTP sent to phone"})
 
         # 4️⃣ STEP — VERIFY PHONE OTP
-        if step == "verify_phone":
-            token = data["signup_token"]
-            phone_otp = data["phone_otp"]
+        if step == "phone_verification":
+            signup_token = serializer.validated_data.get("signup_token")
+            phone_otp = serializer.validated_data.get("phone_otp")
 
-            session = get_object_or_404(SignupSession, token=token)
+            user = User.objects.get(signup_token=signup_token)
 
-            otp_obj = OTP.objects.filter(phone_number=session.phone).latest("created_at")
+            if user.phone_otp != phone_otp:
+                return Response({"error": "Invalid OTP"}, status=400)
 
-            if otp_obj.is_expired():
+            if user.is_otp_expired():
                 return Response({"error": "OTP expired"}, status=400)
-            if otp_obj.code != phone_otp:
-                return Response({"error": "Incorrect OTP"}, status=400)
 
-            session.phone_verified = True
-            session.save()
+            user.phone_verified = True
+            user.phone_otp = None
+            user.save()
 
-            return Response({"message": "Phone verified", "signup_token": str(session.token)})
+            return Response({"message": "Phone verified"})
 
-        # 5️⃣ STEP — SET PASSWORD AND CREATE USER
-        if step == "set_password":
-            token = data["signup_token"]
-            password = data["password"]
-            password2 = data["password2"]
-            username = data["username"]
+        # 5️⃣ STEP — SET PASSWORD AND CREATE ACCOUNT FULLY
+        if step == "password":
+            signup_token = serializer.validated_data.get("signup_token")
+            password = serializer.validated_data.get("password")
+            password2 = serializer.validated_data.get("password2")
+            username = serializer.validated_data.get("username")
 
-            session = get_object_or_404(SignupSession, token=token)
+            user = User.objects.get(signup_token=signup_token)
 
             if password != password2:
                 return Response({"error": "Passwords do not match"}, status=400)
-
-            if not (session.email_verified and session.phone_verified):
+            if not (user.email_verified and user.phone_verified):
                 return Response({"error": "Complete verification first"}, status=400)
 
-    # prevent duplicate user
-            if User.objects.filter(email=session.email).exists():
+            if User.objects.filter(email=user.email).exclude(id=user.id).exists():
                 return Response({"error": "Email already exists"}, status=400)
-            if User.objects.filter(phone_number=session.phone).exists():
-                return Response({"error": "Phone already registered"}, status=400)
 
-    # create the user
-        user = User.objects.create_user(
-            email=session.email,
-            phone_number=session.phone,
-            password=password
-        )
-        user.username = username
-        user.save()
+            if User.objects.filter(phone_number=user.phone_number).exclude(id=user.id).exists():
+                return Response({"error": "Phone number already exists"}, status=400)
 
-        session.delete()
 
-        return Response({"message": "Account created successfully"})
+            user.username = username
+            user.set_password(password)
+            user.save()
 
+            return Response({"message": "account created successfully!"})
+
+        return Response({"error": "Invalid step"}, status=400)
 
 class LoginView(APIView):
     def post(self, request):
@@ -448,43 +443,103 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Address.objects.filter(user=self.request.user)
 
 
-# Checkout / Create Order (simple)
 class CreateOrderView(APIView):
+    
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        address_id = request.data.get('address_id')
-        payment_method = request.data.get('payment_method', 'COD')
+        user = request.user
 
-        address = get_object_or_404(Address, pk=address_id, user=request.user)
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        if not cart.items.exists():
-            return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+        # Selected cart items or entire cart
+        item_ids = request.data.get("items", [])
+        payment_method = request.data.get("payment_method", "COD").upper()
+        address_id = request.data.get("address_id")
 
-        # calculate total and check stock
-        total = Decimal('0.00')
-        for item in cart.items.select_related('product'):
+        # Load cart items
+        if item_ids:
+            cart_items = CartItem.objects.filter(id__in=item_ids, cart__user=user)
+        else:
+            cart, _ = Cart.objects.get_or_create(user=user)
+            cart_items = cart.items.all()
+
+        if not cart_items.exists():
+            return Response({"error": "No cart items found"}, status=400)
+
+        # Get address
+        if address_id:
+            address = get_object_or_404(Address, id=address_id, user=user)
+        else:
+            address = Address.objects.filter(user=user, is_default=True).first()
+
+        if not address:
+            return Response({"error": "Address is required"}, status=400)
+
+        # Calculate total
+        total = Decimal("0.00")
+        for item in cart_items:
             if item.product.stock < item.quantity:
-                return Response({'error': f'Not enough stock for {item.product.name}'}, status=status.HTTP_400_BAD_REQUEST)
-            total += item.subtotal()
+                return Response({"error": f"Not enough stock for {item.product.name}"}, status=400)
+            total += item.product.price * item.quantity
 
-        order = Order.objects.create(user=request.user, address=address, total=total, payment_method=payment_method)
-        # create order items and reduce stock
-        for item in cart.items.select_related('product'):
-            OrderItem.objects.create(order=order, product=item.product, price=item.product.price, quantity=item.quantity)
-            # reduce stock
-            item.product.stock -= item.quantity
-            item.product.save()
+        # ---------------------------
+        #       COD CHECKOUT  
+        # ---------------------------
+        if payment_method == "COD":
+            with transaction.atomic():
+                order = Order.objects.create(
+                    user=user,
+                    address=address,
+                    total=total,
+                    paid=False,
+                    payment_method="COD"
+                )
 
-        # clear cart
-        cart.items.all().delete()
+                for item in cart_items:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=item.product,
+                        price=item.product.price,
+                        quantity=item.quantity
+                    )
+                    # Reduce stock
+                    item.product.stock -= item.quantity
+                    item.product.save()
 
-        # NOTE: integrate payment gateway here. For now, assume COD or payment handled separately.
-        serializer = OrderSerializer(order, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+                cart_items.delete()
 
+            return Response({
+                "message": "Order placed successfully (COD)",
+                "order_id": order.id,
+                "total": str(order.total)
+            })
 
-# Profile endpoints
+        # ---------------------------
+        #   RAZORPAY CHECKOUT
+        # ---------------------------
+        elif payment_method == "RAZORPAY":
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+            amount_paise = int(total * 100)
+
+            razorpay_order = client.order.create({
+                "amount": amount_paise,
+                "currency": "INR",
+                "payment_capture": 1
+            })
+
+            return Response({
+                "message": "Razorpay order created",
+                "razorpay_order_id": razorpay_order["id"],
+                "amount": str(total),
+                "amount_paisa": amount_paise,
+                "items": [item.id for item in cart_items],
+                "key": settings.RAZORPAY_KEY_ID,
+                "address_id": address.id
+            })
+
+        else:
+            return Response({"error": "Invalid payment method"}, status=400)
+        
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -506,60 +561,71 @@ class ProfileView(APIView):
             user.name = name
             user.save()
         return Response({'message': 'Profile updated'})
-
-class CreateRazorpayOrderView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        amount = request.data.get("amount")  # in Rupees
-        amount_in_paisa = int(float(amount) * 100)  # convert to paisa
-        
-        # Razorpay client
-        client = razorpay.Client(
-            auth=(settings.RAZORPAY_KEY, settings.RAZORPAY_SECRET)
-        )
-        print("Razorpay auth →", settings.RAZORPAY_KEY, settings.RAZORPAY_SECRET)
-        # create order
-        payment_order = client.order.create({
-            "amount": amount_in_paisa,
-            "currency": "INR",
-            "payment_capture": 1
-        })
-
-        return Response({
-            "order_id": payment_order["id"],
-            "amount": amount,
-            "currency": "INR",
-            "key": settings.RAZORPAY_KEY
-        })
+    
 
 class VerifyPaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        razorpay_order_id = request.data.get("razorpay_order_id")
-        razorpay_payment_id = request.data.get("razorpay_payment_id")
-        razorpay_signature = request.data.get("razorpay_signature")
-        order_id = request.data.get("order_id")  # your internal order
+        user = request.user
+        data = request.data
 
-        client = razorpay.Client(
-            auth=(settings.RAZORPAY_KEY, settings.RAZORPAY_SECRET)
-        )
+        razorpay_order_id = data.get("razorpay_order_id")
+        razorpay_payment_id = data.get("razorpay_payment_id")
+        razorpay_signature = data.get("razorpay_signature")
+        items = data.get("items", [])
+        address_id = data.get("address_id")
 
-        # verify signature
+        if not (razorpay_order_id and razorpay_payment_id and razorpay_signature):
+            return Response({"error": "Missing payment details"}, status=400)
+
+        # Verify Razorpay signature
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
         try:
             client.utility.verify_payment_signature({
                 "razorpay_order_id": razorpay_order_id,
                 "razorpay_payment_id": razorpay_payment_id,
-                "razorpay_signature": razorpay_signature
+                "razorpay_signature": razorpay_signature,
             })
-
-            order = Order.objects.get(id=order_id, user=request.user)
-            order.paid = True
-            order.payment_method = "RAZORPAY"
-            order.payment_reference = razorpay_payment_id
-            order.save()
-
-            return Response({"status": "success", "message": "Payment verified"})
         except:
-            return Response({"status": "failed", "message": "Payment verification failed"}, status=400)
+            return Response({"error": "Invalid payment signature"}, status=400)
+
+        # Load cart items
+        if items:
+            cart_items = CartItem.objects.filter(id__in=items, cart__user=user)
+        else:
+            cart_items = CartItem.objects.filter(cart__user=user)
+
+        if not cart_items.exists():
+            return Response({"error": "No cart items found"}, status=400)
+
+        # Load address
+        address = get_object_or_404(Address, id=address_id, user=user)
+
+        # Create final order
+        with transaction.atomic():
+            total = sum(item.product.price * item.quantity for item in cart_items)
+
+            order = Order.objects.create(
+                user=user,
+                address=address,
+                total=total,
+                paid=True,
+                payment_method="RAZORPAY",
+                payment_reference=razorpay_payment_id
+            )
+
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    price=item.product.price,
+                    quantity=item.quantity
+                )
+                item.product.stock -= item.quantity
+                item.product.save()
+
+            cart_items.delete()
+
+        return Response({"message": "Payment successful, order placed", "order_id": order.id})

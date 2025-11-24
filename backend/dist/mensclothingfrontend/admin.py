@@ -1,29 +1,62 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    # Fields to display in admin list
-    list_display = ('id', 'phone_number', 'is_admin', 'is_active')
-    list_filter = ('is_admin', 'is_active')
+    list_display = (
+        "email",
+        "phone_number",
+        "email_verified",
+        "phone_verified",
+        "is_staff",
+        "is_active",
+    )
+    list_filter = ("email_verified", "phone_verified", "is_staff", "is_active")
+    search_fields = ("email", "phone_number")
+
+    ordering = ("email",)
 
     fieldsets = (
-        (None, {'fields': ('phone_number',)}),
-        ('Permissions', {'fields': ('is_admin', 'is_active')}),
-    )
-
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('phone_number', 'is_admin', 'is_active'),
+        ("Login Credentials", {
+            "fields": ("email", "phone_number", "password")
+        }),
+        ("Verification Status", {
+            "fields": ("email_verified", "phone_verified")
+        }),
+        ("OTP Data (Read Only)", {
+            "fields": (
+                "email_otp",
+                "phone_otp",
+                "login_otp",
+                "reset_password_otp",
+                "change_email_otp",
+                "change_phone_otp",
+                "otp_created_at",
+            )
+        }),
+        ("Permissions", {
+            "fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")
         }),
     )
 
-    search_fields = ('phone_number',)
-    ordering = ('id',)
+    readonly_fields = (
+        "email_verified",
+        "phone_verified",
+        "email_otp",
+        "phone_otp",
+        "otp_created_at",
+        "reset_password_otp",
+        "reset_token",
+        "signup_token",
+    )
 
-    filter_horizontal = ()
-
+    add_fieldsets = (
+        ("Create User", {
+            "classes": ("wide",),
+            "fields": ("email", "phone_number", "password1", "password2"),
+        }),
+    )
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'slug', 'parent')

@@ -1,7 +1,9 @@
+import random
 from rest_framework import serializers
-from .models import User, SignupSession, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -15,18 +17,103 @@ class SignupSerializer(serializers.Serializer):
     email_otp = serializers.CharField(required=False)
 
     # step 3
-    phone = serializers.CharField(required=False)
+    phone_number = serializers.CharField(required=False)
 
     # step 4
     phone_otp = serializers.CharField(required=False)
 
-    # step 5 — set password + username
+    # step 5
     username = serializers.CharField(required=False)
     password = serializers.CharField(required=False)
     password2 = serializers.CharField(required=False)
 
     signup_token = serializers.CharField(required=False)
 
+    def generate_otp(self):
+        return str(random.randint(100000, 999999))
+
+    def create(self, validated_data):
+        step = validated_data["step"]
+
+        if step == "email":
+            email = validated_data["email"]
+
+            if User.objects.filter(email=email).exists():
+                raise serializers.ValidationError("Email already exists")
+
+            user = User.objects.create(
+                email=email,
+                email_otp=self.generate_otp(),
+                otp_created_at=timezone.now(),
+            )
+
+            # TODO: send email otp
+
+            return {"signup_token": str(user.signup_token)}
+
+        if step == "email_verification":
+            signup_token = validated_data["signup_token"]
+            user = User.objects.get(signup_token=signup_token)
+
+            if user.email_otp != validated_data["email_otp"]:
+                raise serializers.ValidationError("Invalid OTP")
+
+            if user.is_otp_expired():
+                raise serializers.ValidationError("OTP expired")
+
+            user.email_verified = True
+            user.email_otp = None
+            user.save()
+
+            return {"detail": "Email verified"}
+        
+        if step == "phone_number":
+            signup_token = validated_data["signup_token"]
+            user = User.objects.get(signup_token=signup_token)
+
+            phone = validated_data["phone_number"]
+            if User.objects.filter(phone_number=phone).exists():
+                raise serializers.ValidationError("Phone already exists")
+
+            user.phone_number = phone
+            user.phone_otp = self.generate_otp()
+            user.otp_created_at = timezone.now()
+            user.save()
+
+            # TODO: send sms otp
+
+            return {"detail": "OTP sent to phone"}
+        if step == "phone_verification":
+            signup_token = validated_data["signup_token"]
+            user = User.objects.get(signup_token=signup_token)
+
+            if user.phone_otp != validated_data["phone_otp"]:
+                raise serializers.ValidationError("Invalid OTP")
+
+            if user.is_otp_expired():
+                raise serializers.ValidationError("OTP expired")
+
+            user.phone_verified = True
+            user.phone_otp = None
+            user.save()
+
+            return {"detail": "Phone verified"}
+
+        if step == "password":
+            signup_token = validated_data["signup_token"]
+            user = User.objects.get(signup_token=signup_token)
+
+            if validated_data["password"] != validated_data["password2"]:
+                raise serializers.ValidationError("Passwords do not match")
+
+            user.username = validated_data["username"]
+            user.set_password(validated_data["password"])
+            user.save()
+
+            return {"detail": "Signup completed"}
+
+        return {"detail": "Invalid step"}
+    
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField()
     password = serializers.CharField()
