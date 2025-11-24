@@ -11,14 +11,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='user',
-            name='reset_token',
-            field=models.UUIDField(default=uuid.uuid4, null=True),
-        ),
-        migrations.AddField(
-            model_name='user',
-            name='signup_token',
-            field=models.UUIDField(default=uuid.uuid4, null=True),
-        ),
+       # migrations.AddField(
+        #    model_name='user',
+        #    name='reset_token',
+        #    field=models.UUIDField(default=uuid.uuid4, null=True),
+        #),
+        #migrations.AddField(
+        #    model_name='user',
+        #    name='signup_token',
+        #    field=models.UUIDField(default=uuid.uuid4, null=True),
+        #),
     ]

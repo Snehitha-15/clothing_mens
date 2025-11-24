@@ -20,6 +20,7 @@ load_dotenv()
 # Get base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env_file=os.environ.get("ENV_FILE",".env")
 # Load environment variables
 load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
 
@@ -107,14 +108,21 @@ WSGI_APPLICATION = 'mensclothingbackend.wsgi.application'
 
 #SECRET_KEY = os.getenv('SECRET_KEY')
 
+def get_postgres_host():
+    # When inside Docker, use host.docker.internal
+    if os.environ.get("DOCKERIZED", "False") == "True":
+        return os.environ.get("POSTGRES_HOST", "host.docker.internal")
+    # Otherwise (local venv), default to localhost
+    return os.environ.get("POSTGRES_HOST", "localhost")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'NAME': os.environ.get('POSTGRES_DB', 'edustream_db'),
+        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'qwerty@123'),
+        'HOST': get_postgres_host(),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
 

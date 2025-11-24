@@ -25,9 +25,9 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
     def create_superuser(self, email, phone_number, password=None, **extra_fields):
-        extra_fields.setdefault('is_admin', True)
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
 
         return self.create_user(email, phone_number, password, **extra_fields)
 
@@ -48,8 +48,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # For reset password
     reset_password_otp = models.CharField(max_length=6, blank=True, null=True)
-    reset_token = models.UUIDField(default=uuid.uuid4)  #unique=True)
-    signup_token = models.UUIDField(default=uuid.uuid4)  #unique=True)
+    reset_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    signup_token = models.UUIDField(default=uuid.uuid4, unique=True)
 
 
 
@@ -62,8 +62,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_otp_expired(self):
         if not self.otp_created_at:
             return True
-        from django.utils import timezone
-        from datetime import timedelta
+
         return timezone.now() > self.otp_created_at + timedelta(minutes=5)
     
     def __str__(self):
