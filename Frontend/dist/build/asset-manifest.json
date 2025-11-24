@@ -1,0 +1,29 @@
+{
+  "files": {
+    "main.css": "/static/css/main.b2eb7d83.css",
+    "main.js": "/static/js/main.2ac0d60c.js",
+    "static/js/453.3f1c65d3.chunk.js": "/static/js/453.3f1c65d3.chunk.js",
+    "static/media/shirt2.jpg": "/static/media/shirt2.1c9508c418ea650dc6f4.jpg",
+    "static/media/shirt10.jpg": "/static/media/shirt10.9add9bce1fa204e8c0fc.jpg",
+    "static/media/banner3.jpg": "/static/media/banner3.aa12dd290e09d6503a60.jpg",
+    "static/media/banner2.jpg": "/static/media/banner2.996bde618bbeb8b46f0d.jpg",
+    "static/media/blazer4.jpg": "/static/media/blazer4.ab6c71032864708a39b8.jpg",
+    "static/media/mensBanner.jpg": "/static/media/mensBanner.4ad92095957d3aae6cf2.jpg",
+    "static/media/shirt18.jpg": "/static/media/shirt18.f93ac3375510d612362a.jpg",
+    "static/media/blazer17.jpg": "/static/media/blazer17.9a97d9c291c79c36a674.jpg",
+    "static/media/shirt1.jpg": "/static/media/shirt1.e30b1ff1d0d8cc53dbae.jpg",
+    "static/media/blazer18.jpg": "/static/media/blazer18.e32b4ae9c2454ef205af.jpg",
+    "static/media/shirt15.jpg": "/static/media/shirt15.a979e9cfcaf71b31e6b4.jpg",
+    "static/media/blazer14.jpg": "/static/media/blazer14.06ec4992226fb13b7202.jpg",
+    "static/media/login.jpg": "/static/media/login.c9285d84e90913b16df8.jpg",
+    "static/media/suit3.jpg": "/static/media/suit3.b64df4ddf11f51be8a4b.jpg",
+    "index.html": "/index.html",
+    "main.b2eb7d83.css.map": "/static/css/main.b2eb7d83.css.map",
+    "main.2ac0d60c.js.map": "/static/js/main.2ac0d60c.js.map",
+    "453.3f1c65d3.chunk.js.map": "/static/js/453.3f1c65d3.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b2eb7d83.css",
+    "static/js/main.2ac0d60c.js"
+  ]
+}

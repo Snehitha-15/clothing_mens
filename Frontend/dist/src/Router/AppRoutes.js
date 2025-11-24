@@ -12,7 +12,6 @@ import {
 import Header from "../components/Header/Header";
 import CheckoutHeader from "../components/Header/CheckoutHeader";
 import Footer from "../components/footer/Footer";
-
 import Products from "../Pages/products/Products";
 import AddressPage from "../Pages/Checkout/Address";
 import PaymentPage from "../Pages/Checkout/Payment";
@@ -21,13 +20,14 @@ import Cart from "../Pages/cart/Cart";
 import HomePage from "../Pages/HomePage";
 import Login from "../Pages/Login/Login";
 import ProtectedRoute from "../ProtectedRoute";
+import Signup from "../Pages/Login/Signup";
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCategories } from "../Redux/categorySlice";
 import { fetchProducts } from "../Redux/productSlice";
 
 const AppContent = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);   // subcategory name
+  const [selectedCategory, setSelectedCategory] = useState(null);   
   const [searchQuery, setSearchQuery] = useState("");
 
   const location = useLocation();
@@ -62,7 +62,7 @@ const AppContent = () => {
         />
       )}
 
-      {user && isCheckoutPage && <CheckoutHeader />}
+      { user && isCheckoutPage && <CheckoutHeader />}
 
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
@@ -70,30 +70,31 @@ const AppContent = () => {
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+        
               <HomePage />
-            </ProtectedRoute>
+         
           }
         />
+         
+
+           <Route path="/signup" element={<Signup />} />
 
         <Route
           path="/products"
           element={
-            <ProtectedRoute>
+          
               <Products
                 selectedCategory={selectedCategory}
                 searchQuery={searchQuery}
               />
-            </ProtectedRoute>
+         
           }
         />
 
         <Route
           path="/cart"
           element={
-            <ProtectedRoute>
               <Cart />
-            </ProtectedRoute>
           }
         />
         <Route
@@ -122,7 +123,7 @@ const AppContent = () => {
         />
       </Routes>
 
-      {user && !isCheckoutPage && <Footer />}
+      {!isCheckoutPage && <Footer />}
     </>
   );
 };

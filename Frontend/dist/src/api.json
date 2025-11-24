@@ -1,12 +1,15 @@
 {
   "auth": {
-    "sendOtp": "/api/send-otp/",
     "login": "/api/login/",
-    "logout": "/api/logout/"
+    "logout": "/api/logout/",
+    "signup": "/api/signup/",
+    "reset": "/api/reset/",
+    "sendOtp": "/api/send-otp/", 
+    "verifyOtp": "/api/verify-otp/" 
   },
   "Categories":{
-    "categories":"/api/categories",
-    "category":"api/categories/:id/"
+    "list":"/api/categories/",
+    "detail":"api/categories/:id/"
   },
   "Products":{
     "products":"/api/products/",

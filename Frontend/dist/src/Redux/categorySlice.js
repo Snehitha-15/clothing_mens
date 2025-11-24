@@ -13,7 +13,7 @@ export const fetchCategories = createAsyncThunk(
   "categories/fetchCategories",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get(endpoints.categories.list);
+      const res = await axiosInstance.get(endpoints.Categories.list);
       return res.data;
     } catch (err) {
       return rejectWithValue("Failed to fetch categories");
