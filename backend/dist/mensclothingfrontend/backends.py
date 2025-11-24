@@ -1,20 +1,19 @@
-'''from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
+from .models import User
 
-User = get_user_model()
-
-class EmailBackend(ModelBackend):
+class EmailOrPhoneBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        # Django always passes the first credential as "username"
-        email = kwargs.get('email', username)
-        if email is None or password is None:
-            return None
+        identifier = username  # Django passes identifier as "username"
+
         try:
-            user = User.objects.get(email=email)
+            if "@" in identifier:
+                user = User.objects.get(email=identifier)
+            else:
+                user = User.objects.get(phone_number=identifier)
         except User.DoesNotExist:
             return None
 
-        if user.check_password(password) and self.user_can_authenticate(user):
+        if user.check_password(password):
             return user
+
         return None
-'''

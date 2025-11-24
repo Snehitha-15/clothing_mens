@@ -8,112 +8,79 @@ from django.utils import timezone
 User = get_user_model()
 
 class SignupSerializer(serializers.Serializer):
+    # required for identifying which step is happening
     step = serializers.CharField()
 
-    # step 1
+    # STEP 1 – email OTP
     email = serializers.EmailField(required=False)
 
-    # step 2
+    # STEP 2 – email verification
     email_otp = serializers.CharField(required=False)
 
-    # step 3
+    # STEP 3 – phone OTP
     phone_number = serializers.CharField(required=False)
 
-    # step 4
+    # STEP 4 – phone verification
     phone_otp = serializers.CharField(required=False)
 
-    # step 5
+    # STEP 5 – final password setup
     username = serializers.CharField(required=False)
     password = serializers.CharField(required=False)
     password2 = serializers.CharField(required=False)
 
+    # used in all steps after step 1
     signup_token = serializers.CharField(required=False)
 
+    # Generate random 6-digit OTP
     def generate_otp(self):
         return str(random.randint(100000, 999999))
 
-    def create(self, validated_data):
-        step = validated_data["step"]
+    # Custom validation to ensure correct fields for each step
+    def validate(self, data):
+        step = data.get("step")
 
+        # ------- Step 1: email -------
         if step == "email":
-            email = validated_data["email"]
+            if not data.get("email"):
+                raise serializers.ValidationError({"email": "Email is required"})
 
-            if User.objects.filter(email=email).exists():
-                raise serializers.ValidationError("Email already exists")
+        # ------- Step 2: email verification -------
+        elif step == "email_verification":
+            if not data.get("signup_token"):
+                raise serializers.ValidationError({"signup_token": "Signup token required"})
+            if not data.get("email_otp"):
+                raise serializers.ValidationError({"email_otp": "Email OTP is required"})
 
-            user = User.objects.create(
-                email=email,
-                email_otp=self.generate_otp(),
-                otp_created_at=timezone.now(),
-            )
+        # ------- Step 3: phone number (send OTP) -------
+        elif step == "phone_number":
+            if not data.get("signup_token"):
+                raise serializers.ValidationError({"signup_token": "Signup token required"})
+            phone = data.get("phone_number")
+            if not phone or phone.strip() == "":
+                raise serializers.ValidationError({"phone_number": "Valid phone number required"})
 
-            # TODO: send email otp
+        # ------- Step 4: verify phone -------
+        elif step == "phone_verification":
+            if not data.get("signup_token"):
+                raise serializers.ValidationError({"signup_token": "Signup token required"})
+            if not data.get("phone_otp"):
+                raise serializers.ValidationError({"phone_otp": "Phone OTP required"})
 
-            return {"signup_token": str(user.signup_token)}
+        # ------- Step 5: password setup -------
+        elif step == "password":
+            if not data.get("signup_token"):
+                raise serializers.ValidationError({"signup_token": "Signup token required"})
+            if not data.get("username"):
+                raise serializers.ValidationError({"username": "Username required"})
+            if not data.get("password"):
+                raise serializers.ValidationError({"password": "Password required"})
+            if data.get("password") != data.get("password2"):
+                raise serializers.ValidationError({"password": "Passwords do not match"})
 
-        if step == "email_verification":
-            signup_token = validated_data["signup_token"]
-            user = User.objects.get(signup_token=signup_token)
+        else:
+            raise serializers.ValidationError({"step": "Invalid step"})
 
-            if user.email_otp != validated_data["email_otp"]:
-                raise serializers.ValidationError("Invalid OTP")
-
-            if user.is_otp_expired():
-                raise serializers.ValidationError("OTP expired")
-
-            user.email_verified = True
-            user.email_otp = None
-            user.save()
-
-            return {"detail": "Email verified"}
-        
-        if step == "phone_number":
-            signup_token = validated_data["signup_token"]
-            user = User.objects.get(signup_token=signup_token)
-
-            phone = validated_data["phone_number"]
-            if User.objects.filter(phone_number=phone).exists():
-                raise serializers.ValidationError("Phone already exists")
-
-            user.phone_number = phone
-            user.phone_otp = self.generate_otp()
-            user.otp_created_at = timezone.now()
-            user.save()
-
-            # TODO: send sms otp
-
-            return {"detail": "OTP sent to phone"}
-        if step == "phone_verification":
-            signup_token = validated_data["signup_token"]
-            user = User.objects.get(signup_token=signup_token)
-
-            if user.phone_otp != validated_data["phone_otp"]:
-                raise serializers.ValidationError("Invalid OTP")
-
-            if user.is_otp_expired():
-                raise serializers.ValidationError("OTP expired")
-
-            user.phone_verified = True
-            user.phone_otp = None
-            user.save()
-
-            return {"detail": "Phone verified"}
-
-        if step == "password":
-            signup_token = validated_data["signup_token"]
-            user = User.objects.get(signup_token=signup_token)
-
-            if validated_data["password"] != validated_data["password2"]:
-                raise serializers.ValidationError("Passwords do not match")
-
-            user.username = validated_data["username"]
-            user.set_password(validated_data["password"])
-            user.save()
-
-            return {"detail": "Signup completed"}
-
-        return {"detail": "Invalid step"}
-    
+        return data
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField()
     password = serializers.CharField()

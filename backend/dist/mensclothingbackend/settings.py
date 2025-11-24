@@ -185,3 +185,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
 }
+
+AUTHENTICATION_BACKENDS = [
+    'mensclothingfrontend.backends.EmailOrPhoneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

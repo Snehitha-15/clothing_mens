@@ -23,29 +23,35 @@ User = get_user_model()
 
 
 class SignupView(APIView):
+
+    def generate_otp(self):
+        import random
+        return str(random.randint(100000, 999999))
+
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         step = serializer.validated_data["step"]
-
+        
         if step == "email":
             email = serializer.validated_data.get("email")
 
-    # check duplicate BEFORE creating user
             if User.objects.filter(email=email).exists():
                 return Response({"error": "Email already exists"}, status=400)
 
-    # create temporary user
+            # create temporary user (phone blank but NOT UNIQUE)
+            otp = send_email_otp(email)
+
             user = User.objects.create(
              email=email,
-             email_otp=serializer.generate_otp(),
+             email_otp=otp,
              otp_created_at=timezone.now(),
-            )
+             phone_number=str(uuid.uuid4())[:12],  
+             )
 
-            print("EMAIL OTP:", user.email_otp)  # SEND EMAIL HERE
+            print("EMAIL OTP:", user.email_otp)
             return Response({
-                "message": "Email OTP sent",
+                "message": "OTP sent to email",
                 "signup_token": str(user.signup_token)
             })
 
@@ -66,27 +72,26 @@ class SignupView(APIView):
             user.save()
 
             return Response({"message": "Email verified"})
-
-        # 3️⃣ STEP — SEND PHONE OTP
+        
         if step == "phone_number":
             signup_token = serializer.validated_data.get("signup_token")
             phone = serializer.validated_data.get("phone_number")
 
-            user = User.objects.get(signup_token=signup_token)
+            if not phone or phone.strip() == "":
+                return Response({"error": "Phone number required"}, status=400)
 
             if User.objects.filter(phone_number=phone).exists():
                 return Response({"error": "Phone already exists"}, status=400)
 
+            user = User.objects.get(signup_token=signup_token)
             user.phone_number = phone
-            user.phone_otp = serializer.generate_otp(serializer)
+            user.phone_otp = self.generate_otp()
             user.otp_created_at = timezone.now()
             user.save()
 
-            print("PHONE OTP:", user.phone_otp)  # SEND SMS HERE
-
+            print("PHONE OTP:", user.phone_otp)
             return Response({"message": "OTP sent to phone"})
-
-        # 4️⃣ STEP — VERIFY PHONE OTP
+        
         if step == "phone_verification":
             signup_token = serializer.validated_data.get("signup_token")
             phone_otp = serializer.validated_data.get("phone_otp")
@@ -105,35 +110,28 @@ class SignupView(APIView):
 
             return Response({"message": "Phone verified"})
 
-        # 5️⃣ STEP — SET PASSWORD AND CREATE ACCOUNT FULLY
         if step == "password":
             signup_token = serializer.validated_data.get("signup_token")
+            username = serializer.validated_data.get("username")
             password = serializer.validated_data.get("password")
             password2 = serializer.validated_data.get("password2")
-            username = serializer.validated_data.get("username")
 
             user = User.objects.get(signup_token=signup_token)
 
             if password != password2:
                 return Response({"error": "Passwords do not match"}, status=400)
+
             if not (user.email_verified and user.phone_verified):
                 return Response({"error": "Complete verification first"}, status=400)
-
-            if User.objects.filter(email=user.email).exclude(id=user.id).exists():
-                return Response({"error": "Email already exists"}, status=400)
-
-            if User.objects.filter(phone_number=user.phone_number).exclude(id=user.id).exists():
-                return Response({"error": "Phone number already exists"}, status=400)
-
 
             user.username = username
             user.set_password(password)
             user.save()
 
-            return Response({"message": "account created successfully!"})
+            return Response({"message": "Account created successfully!"})
 
         return Response({"error": "Invalid step"}, status=400)
-
+    
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -142,15 +140,7 @@ class LoginView(APIView):
         identifier = serializer.validated_data['identifier']
         password = serializer.validated_data['password']
 
-        try:
-            if "@" in identifier:
-                user_obj = User.objects.get(email=identifier)
-            else:
-                user_obj = User.objects.get(phone_number=identifier)
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
-
-        user = authenticate(request, email=user_obj.email, password=password)
+        user = authenticate(request, username=identifier, password=password)
 
         if not user:
             return Response({"error": "Invalid credentials"}, status=400)
@@ -161,7 +151,6 @@ class LoginView(APIView):
             "refresh": str(refresh),
             "access": str(refresh.access_token)
         })
-
 
 class ResetPasswordView(APIView):
     reset_sessions = {}  # store temporary reset tokens
