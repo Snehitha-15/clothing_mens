@@ -59,15 +59,13 @@ const HomePage = () => {
     { id: 3, title: "SUITS & BLAZERS", image: blazer17, category: "blazer" },
   ];
 
-  // PRODUCT SECTION
   const ProductSection = ({ title, products, showMore, setShowMore }) => {
     const visible = showMore ? products : products.slice(0, 6);
 
     return (
-      <div className="mb-5">
+      <div className="mb-3">
         <div className="d-flex justify-content-between align-items-center px-1">
           <h4 className="section-title m-0">{title}</h4>
-
           {!showMore ? (
             <p className="see-all-text" onClick={() => setShowMore(true)}>
               See All →
@@ -83,12 +81,12 @@ const HomePage = () => {
           {visible.map((item) => (
             <Col
               key={item.id}
-              xl="2"   
-              lg="3"   
-              md="4"  
-              sm="6"   
-              xs="12" 
-              className="mb-4"
+              xl="2"
+              lg="3"
+              md="4"
+              sm="6"
+              xs="12"
+              className="mb-2"
             >
               <motion.div whileHover={{ scale: 1.05 }}>
                 <Card className="product-card" onClick={() => navigate(`/products/${item.id}`)}>
@@ -96,8 +94,8 @@ const HomePage = () => {
                   <CardBody className="text-center">
                     <CardTitle tag="h6">{item.name}</CardTitle>
                     <div className="d-flex justify-content-between align-items-center mt-4">
-                    <p className="text-dark fw-bold" size="md">₹{item.price}</p>
-                    <Button color="dark" size="sm">Add to Cart</Button>
+                      <p className="text-dark fw-bold" size="md">₹{item.price}</p>
+                      <Button color="dark" size="sm">Add to Cart</Button>
                     </div>
                   </CardBody>
                 </Card>
@@ -130,21 +128,21 @@ const HomePage = () => {
         />
 
         <div className="bottom-banner-section">
-        {bottomBanners.map((banner) => (
-        <motion.div
-         key={banner.id}
-         className="bottom-banner mb-4"
-         whileHover={{ scale: 1.02 }}
-         onClick={() => navigate(`/products/${banner.category}`)}
-        >
-         <img src={banner.image} alt={banner.title} />
-         <div className="banner-overlay">
-         <h4>{banner.title}</h4>
-         <p>Explore our selection of premium men’s collection</p>
-       </div>
-     </motion.div>
-   ))}
-  </div>
+          {bottomBanners.map((banner) => (
+            <motion.div
+              key={banner.id}
+              className="bottom-banner mb-4"
+              whileHover={{ scale: 1.02 }}
+              onClick={() => navigate(`/products/${banner.category}`)}
+            >
+              <img src={banner.image} alt={banner.title} />
+              <div className="banner-overlay">
+                <h4>{banner.title}</h4>
+                <p>Explore our selection of premium men’s collection</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
       </Container>
     </div>

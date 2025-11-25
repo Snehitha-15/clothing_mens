@@ -48,12 +48,12 @@
 .category-btn {
   background: white !important;
   border: 1px solid #d1d1d1 !important;
-  border-radius: 30px !important;       /* 🎯 Pill shape */
-  padding: 8px 22px !important;         /* 🧊 Balanced spacing */
+  border-radius: 30px !important;    
+  padding: 8px 22px !important;        
   font-size: 14px;
   color: #232f3e !important;
   cursor: pointer;
-  transition: all 0.3s ease;            /* 🌟 Smooth transition like before */
+  transition: all 0.3s ease;            
   font-weight: 500;
   display: inline-flex;
   align-items: center;

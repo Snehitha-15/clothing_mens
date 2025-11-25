@@ -12,7 +12,6 @@ import {
 import Header from "../components/Header/Header";
 import CheckoutHeader from "../components/Header/CheckoutHeader";
 import Footer from "../components/footer/Footer";
-
 import Products from "../Pages/products/Products";
 import AddressPage from "../Pages/Checkout/Address";
 import PaymentPage from "../Pages/Checkout/Payment";
@@ -21,13 +20,14 @@ import Cart from "../Pages/cart/Cart";
 import HomePage from "../Pages/HomePage";
 import Login from "../Pages/Login/Login";
 import ProtectedRoute from "../ProtectedRoute";
+import Signup from "../Pages/Login/Signup";
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCategories } from "../Redux/categorySlice";
 import { fetchProducts } from "../Redux/productSlice";
 
 const AppContent = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);   // subcategory name
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const location = useLocation();
@@ -37,14 +37,19 @@ const AppContent = () => {
   const { user } = useSelector((state) => state.auth);
   const { tree: categoriesTree } = useSelector((state) => state.categories);
 
+  // 🚫 Routes where we hide Footer
+  const noFooterRoutes = ["/login", "/signup", "/cart", "/address", "/payment"];
+  const hideFooter = noFooterRoutes.includes(location.pathname);
+
+  // 🚫 Routes where we show Checkout Header
   const isCheckoutPage = ["/cart", "/address", "/payment"].includes(location.pathname);
 
+  // Fetch initial categories/products
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  // Called when user picks subcategory from dropdown (e.g. "Shirt")
   const handleCategorySelect = (subcategoryName) => {
     setSelectedCategory(subcategoryName);
     setSearchQuery("");
@@ -53,6 +58,7 @@ const AppContent = () => {
 
   return (
     <>
+      {/* Header Logic */}
       {user && !isCheckoutPage && (
         <Header
           categoriesTree={categoriesTree}
@@ -61,41 +67,22 @@ const AppContent = () => {
           setSearchQuery={setSearchQuery}
         />
       )}
-
       {user && isCheckoutPage && <CheckoutHeader />}
 
+      {/* Routes */}
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<HomePage />} />
 
         <Route
           path="/products"
-          element={
-            <ProtectedRoute>
-              <Products
-                selectedCategory={selectedCategory}
-                searchQuery={searchQuery}
-              />
-            </ProtectedRoute>
-          }
+          element={<Products selectedCategory={selectedCategory} searchQuery={searchQuery} />}
         />
 
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/cart" element={<Cart />} />
+
         <Route
           path="/address"
           element={
@@ -104,6 +91,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/payment"
           element={
@@ -112,6 +100,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/order-success"
           element={
@@ -122,7 +111,8 @@ const AppContent = () => {
         />
       </Routes>
 
-      {user && !isCheckoutPage && <Footer />}
+      {/* Footer (hidden on login, signup, checkout pages) */}
+      {!hideFooter && <Footer />}
     </>
   );
 };
