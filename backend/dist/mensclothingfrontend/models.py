@@ -48,8 +48,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # For reset password
     reset_password_otp = models.CharField(max_length=6, blank=True, null=True)
-    reset_token = models.UUIDField(default=uuid.uuid4, unique=True)
-    signup_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    reset_token = models.UUIDField(default=uuid.uuid4)
+    signup_token = models.UUIDField(default=uuid.uuid4)
 
 
 

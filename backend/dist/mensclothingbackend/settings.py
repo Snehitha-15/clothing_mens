@@ -108,23 +108,36 @@ WSGI_APPLICATION = 'mensclothingbackend.wsgi.application'
 
 #SECRET_KEY = os.getenv('SECRET_KEY')
 
-def get_postgres_host():
+'''def get_postgres_host():
     # When inside Docker, use host.docker.internal
     if os.environ.get("DOCKERIZED", "False") == "True":
         return os.environ.get("POSTGRES_HOST", "host.docker.internal")
-    # Otherwise (local venv), default to localhost
+     #Otherwise (local venv), default to localhost
     return os.environ.get("POSTGRES_HOST", "localhost")
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'edustream_db'),
+        'NAME': os.environ.get('POSTGRES_DB', 'mens_cart_db'),
         'USER': os.environ.get('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'qwerty@123'),
         'HOST': get_postgres_host(),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
+'''
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    }
+}
+
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
