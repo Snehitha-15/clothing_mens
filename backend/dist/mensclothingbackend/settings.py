@@ -204,16 +204,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
 }
     
 '''DEFAULT_PERMISSION_CLASSES': (
-'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
 }'''
+    
 
 AUTHENTICATION_BACKENDS = [
     'mensclothingfrontend.backends.EmailOrPhoneBackend',

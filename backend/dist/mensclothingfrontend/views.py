@@ -276,15 +276,18 @@ class LogoutView(generics.GenericAPIView):
             return Response({"error": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Category.objects.filter(parent__isnull=True)
     serializer_class = CategorySerializer
 
 class CategoryDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 # Fetch all products or filter by category
 class ProductListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = ProductSerializer
 
     def get_queryset(self):
@@ -305,11 +308,12 @@ class ProductListView(generics.ListAPIView):
 
     
 class ProductDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
 class ReduceStockView(APIView):
-
+    permission_classes = [IsAuthenticated]
     def post(self, request, pk):
         try:
             product = Product.objects.get(pk=pk)
@@ -330,7 +334,7 @@ class ReduceStockView(APIView):
 class BannerListView(generics.ListAPIView):
     queryset = Banner.objects.filter(active=True).order_by('order')[:3]
     serializer_class = BannerSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 # Wishlist: list, add, remove
