@@ -18,7 +18,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import transaction
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
 User = get_user_model()
 
 
@@ -336,13 +336,15 @@ class BannerListView(generics.ListAPIView):
 # Wishlist: list, add, remove
 class WishlistListCreateView(APIView):
     permission_classes = [IsAuthenticated]
-
+    authentication_classes = [JWTAuthentication]
     def get(self, request):
+
         items = WishlistItem.objects.filter(user=request.user)
         serializer = WishlistSerializer(items, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):
+        
         product_id = request.data.get('product_id')
         product = get_object_or_404(Product, pk=product_id)
         obj, created = WishlistItem.objects.get_or_create(user=request.user, product=product)
