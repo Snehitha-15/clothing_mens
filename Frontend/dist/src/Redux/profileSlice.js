@@ -1,53 +1,69 @@
-// import { createSlice } from "@reduxjs/toolkit";
+// 📌 src/Redux/profileSlice.js
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
+import endpoints from "../api.json";
 
-// const savedProfile = localStorage.getItem("redux_profile");
+const API = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+});
 
-// const initialState = savedProfile
-//   ? JSON.parse(savedProfile)
-//   : {
-//       name: "Guest User",
-//       email: "",
-//       phone: "",
-//       address: "",
-//       profileImage: null,
-//       loggedIn: false,
-//     };
+// 🔥 FETCH PROFILE API
+export const fetchProfile = createAsyncThunk(
+  "profile/fetchProfile",
+  async (_, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("access_token");
 
-// const profileSlice = createSlice({
-//   name: "profile",
-//   initialState,
-//   reducers: {
-//     signIn(state, action) {
-//       const { name, email, phone, address, profileImage } = action.payload;
+      if (!token) return thunkAPI.rejectWithValue("No token found");
 
-//       state.loggedIn = true;
-//       state.name = name || "User";
-//       state.email = email || "";
-//       state.phone = phone || "";
-//       state.address = address || "";
-//       state.profileImage = profileImage || null;
+      const res = await API.get(endpoints.profile.profile, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-//       localStorage.setItem("redux_profile", JSON.stringify(state));
-//     },
+      return res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue("Failed to load profile");
+    }
+  }
+);
 
-//     updateProfile(state, action) {
-//       Object.assign(state, action.payload);
-//       // Ensure loggedIn stays true when updating profile
-//       state.loggedIn = true;
-//       localStorage.setItem("redux_profile", JSON.stringify(state));
-//     },
+const storedUser = localStorage.getItem("profileUser")
+  ? JSON.parse(localStorage.getItem("profileUser"))
+  : null;
 
-//     logout(state) {
-//       localStorage.removeItem("redux_profile");
-//       state.name = "Guest User";
-//       state.email = "";
-//       state.phone = "";
-//       state.address = "";
-//       state.profileImage = null;
-//       state.loggedIn = false;
-//     },
-//   },
-// });
+const profileSlice = createSlice({
+  name: "profile",
+  initialState: {
+    user: storedUser,
+    loading: false,
+    error: null,
+  },
 
-// export const { signIn, updateProfile, logout } = profileSlice.actions;
-// export default profileSlice.reducer;
+  reducers: {
+    clearProfile: (state) => {
+      state.user = null;
+      localStorage.removeItem("profileUser");
+    },
+  },
+
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        localStorage.setItem("profileUser", JSON.stringify(action.payload));
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
+});
+
+export const { clearProfile } = profileSlice.actions;
+export default profileSlice.reducer;

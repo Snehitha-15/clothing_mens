@@ -1,24 +1,144 @@
-/* ===== CATEGORY DROPDOWN ===== */
+/* ===================== HEADER WRAPPER ===================== */
+.header-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1050;
+}
+
+/* ===================== TOP BAR ===================== */
+.amazon-topbar {
+  background-color: #131921 !important;
+}
+
+.brand {
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+}
+
+/* LOCATION */
+.location-box {
+  font-size: 13px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.location-box:hover {
+  color: #febd69;
+}
+
+/* ===================== SEARCH BAR ===================== */
+.search-bar {
+  max-width: 520px;
+  width: 100%;
+}
+
+.search-bar input {
+  font-size: 14px;
+}
+
+/* ===================== PROFILE ICON ===================== */
+.profile-hover-area {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  color: white;
+  height: 100%;
+}
+
+/* DROPDOWN WRAPPER */
+.myntra-dropdown-wrapper {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 9999;
+}
+
+/* ===================== BADGES ===================== */
+.wishlist-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff1744;
+  color: white;
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 50%;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background: #febd69;
+  color: #000;
+  font-size: 11px;
+  font-weight: 600;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===================== CATEGORY BAR ===================== */
+.amazon-categorybar {
+  background-color: #f8f9fa !important;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #eee;
+}
+
+.amazon-categorybar .navbar-nav {
+  display: inline-flex !important;
+  justify-content: center !important;
+  width: 100%;
+  gap: 25px;
+}
+
+/* CATEGORY BUTTONS */
+.category-btn {
+  background: white !important;
+  border: 1px solid #d1d1d1 !important;
+  border-radius: 30px !important;
+  padding: 8px 22px !important;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.category-btn:hover {
+  background: #f5f5f5 !important;
+  color: #e77600 !important;
+}
+
+.category-btn.active {
+  background: #ffe4b3 !important;
+  border: 2px solid #e77600 !important;
+  color: #d17a00 !important;
+}
+
+/* CATEGORY DROPDOWN */
 .category-dropdown {
   position: absolute;
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
   min-width: 140px;
-  background: #ffffff;
+  background: white;
+  padding: 6px 0;
   border-radius: 6px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-  padding: 6px 0;
   z-index: 1100;
 }
 
 .category-dropdown-item {
   padding: 6px 12px;
   font-size: 14px;
-  color: #232f3e;
-  white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .category-dropdown-item:hover {
@@ -26,59 +146,10 @@
   color: #e47911;
 }
 
-/* On very small screens let dropdown align left to avoid cutting */
+/* MOBILE FIXES */
 @media (max-width: 576px) {
   .category-dropdown {
     left: 0;
     transform: none;
   }
 }
-.logo h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: white;
-  margin: 0;
-  padding: 5px 15px;
-  letter-spacing: 1px;
-}
-.brand .text-warning {
-  color: #ffc107 !important;
-}
-/* ===== CATEGORY BUTTON (Fixed + Pill + Original Design) ===== */
-.category-btn {
-  background: white !important;
-  border: 1px solid #d1d1d1 !important;
-  border-radius: 30px !important;    
-  padding: 8px 22px !important;        
-  font-size: 14px;
-  color: #232f3e !important;
-  cursor: pointer;
-  transition: all 0.3s ease;            
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ✨ Hover Effect - Same as Before */
-.category-btn:hover {
-  background: #f5f5f5 !important;       
-  color: #e77600 !important;           
-  /* border-color: #e77600 !important;    */
-  transform: translateY(-2px);          
-}
-
-/* 🔥 Active Selected Button (Like Before) */
-.category-btn.active {
-  background: #ffe4b3 !important;      
-  border: 2px solid #e77600 !important; 
-  color: #d17a00 !important;            
-  font-weight: 600 !important;
-  transform: translateY(-2px);
-}
-.amazon-categorybar .navbar-nav {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
