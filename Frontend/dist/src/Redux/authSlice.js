@@ -1,141 +1,168 @@
 // 📌 src/Redux/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosIntance";
 import endpoints from "../api.json";
 
-const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-});
-
-/* 🔹 LOGIN */
-export const loginUser = createAsyncThunk(
-  "auth/loginUser",
-  async ({ identifier, password }, thunkAPI) => {
-    try {
-      const response = await API.post(endpoints.auth.login, {
-        identifier,
-        password,
-      });
-      return { user: response.data };
-    } catch (err) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.detail || "Invalid credentials"
-      );
-    }
-  }
-);
-
-/* 🔹 🔥 FIXED: SEND OTP for Password Reset */
-/* 🔹 SEND OTP for Forgot Password */
-export const requestPasswordReset = createAsyncThunk(
-  "auth/requestPasswordReset",
-  async ({ identifier }, thunkAPI) => {
-    try {
-      const payload = identifier.includes("@")
-        ? { step: "email", email: identifier }
-        : { step: "phone_number", phone_number: identifier };
-
-      const response = await API.post(endpoints.auth.reset, payload);
-
-      // backend returns signup_token (important!)
-      return { signup_token: response.data.signup_token };
-    } catch (err) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Failed to send OTP"
-      );
-    }
-  }
-);
-
-/* 🔹 VERIFY RESET OTP */
-export const verifyResetOtp = createAsyncThunk(
-  "auth/verifyResetOtp",
-  async ({ signup_token, identifier, otp }, thunkAPI) => {
-    try {
-      const payload = identifier.includes("@")
-        ? {
-            step: "email_verification",
-            signup_token,
-            email_otp: otp,
-          }
-        : {
-            step: "phone_verification",
-            signup_token,
-            phone_otp: otp,
-          };
-
-      await API.post(endpoints.auth.reset, payload);
-      return true;
-    } catch (err) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Invalid OTP"
-      );
-    }
-  }
-);
-
-/* 🔹 SET NEW PASSWORD */
-export const setNewPassword = createAsyncThunk(
-  "auth/setNewPassword",
-  async ({ signup_token, new_password, confirm_password }, thunkAPI) => {
-    try {
-      await API.post(endpoints.auth.reset, {
-        step: "password",
-        signup_token,
-        password: new_password,
-        password2: confirm_password,
-      });
-      return true;
-    } catch (err) {
-      return thunkAPI.rejectWithValue(
-        err.response?.data?.message || "Failed to reset password"
-      );
-    }
-  }
-);
-
-/* 🔹 SIGNUP */
+/* 🔐 SIGNUP (multi-step backend – you already handle userData) */
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async (userData, thunkAPI) => {
     try {
-      const response = await API.post(endpoints.auth.signup, userData);
-      return { user: response.data };
+      const res = await API.post(endpoints.auth.signup, userData);
+      return { user: res.data };
     } catch (err) {
       return thunkAPI.rejectWithValue(
-        err.response?.data?.detail || "Signup failed"
+        err.response?.data?.error ||
+          err.response?.data?.detail ||
+          "Signup failed"
       );
     }
   }
 );
 
-/* 🔹 LOGOUT */
+/* 🔐 LOGIN */
+export const loginUser = createAsyncThunk(
+  "auth/loginUser",
+  async ({ identifier, password }, thunkAPI) => {
+    try {
+      console.log("📤 Sending Login:", { identifier, password });
+
+      // 🔹 Backend expects: { identifier, password }
+      const response = await API.post(endpoints.auth.login, {
+        identifier,
+        password,
+      });
+
+      console.log("🎯 Login Response:", response.data);
+
+      const { access, refresh } = response.data;
+
+      // 🔹 Save tokens
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      // 🔹 Fetch profile (ProfileView)
+      const profileResponse = await API.get("/api/profile/");
+      const user = profileResponse.data;
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      return { user };
+    } catch (err) {
+      console.error("❌ Login Error:", err.response?.data || err.message);
+
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.error ||
+          err.response?.data?.detail ||
+          "Invalid credentials"
+      );
+    }
+  }
+);
+
+/* 🔁 REQUEST OTP (ResetPasswordView → step = send_otp) */
+export const requestPasswordReset = createAsyncThunk(
+  "auth/requestPasswordReset",
+  async ({ identifier }, thunkAPI) => {
+    try {
+      const res = await API.post(endpoints.auth.reset, {
+        step: "send_otp",
+        identifier,
+      });
+
+      // backend returns: { message, reset_token }
+      return { reset_token: res.data.reset_token, identifier };
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.error || "Failed to send OTP"
+      );
+    }
+  }
+);
+
+/* 🔍 VERIFY OTP (ResetPasswordView → step = verify_otp) */
+export const verifyResetOtp = createAsyncThunk(
+  "auth/verifyResetOtp",
+  async ({ reset_token, otp }, thunkAPI) => {
+    try {
+      await API.post(endpoints.auth.reset, {
+        step: "verify_otp",
+        reset_token,
+        otp,
+      });
+      return true;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.error || "Invalid OTP"
+      );
+    }
+  }
+);
+
+/* 🔐 SET NEW PASSWORD (ResetPasswordView → step = reset_password) */
+export const setNewPassword = createAsyncThunk(
+  "auth/setNewPassword",
+  async ({ reset_token, password, password2 }, thunkAPI) => {
+    try {
+      await API.post(endpoints.auth.reset, {
+        step: "reset_password",
+        reset_token,
+        password,
+        password2,
+      });
+      return true;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.error || "Password reset failed"
+      );
+    }
+  }
+);
+
+/* 🚪 LOGOUT */
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
-  try {
-    await API.post(endpoints.auth.logout);
-  } catch (err) {}
+  localStorage.removeItem("user");
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
   return true;
 });
+
+/* 🔹 Initial State from localStorage */
+const savedUser = localStorage.getItem("user")
+  ? JSON.parse(localStorage.getItem("user"))
+  : null;
 
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: null,
+    user: savedUser,
     loading: false,
     error: null,
-
-    resetStep: "idle",
+    resetStep: "idle", // 'idle' | 'otp' | 'newPassword' | 'done'
+    reset_token: null,
     resetIdentifier: "",
   },
-
   reducers: {
     clearAuthError: (state) => {
       state.error = null;
     },
   },
-
   extraReducers: (builder) => {
     builder
+      /* 🔐 SIGNUP */
+      .addCase(signupUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(signupUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+      })
+      .addCase(signupUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       /* 🔐 LOGIN */
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -150,13 +177,14 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* 🔁 REQUEST RESET OTP */
+      /* 🔁 REQUEST OTP */
       .addCase(requestPasswordReset.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(requestPasswordReset.fulfilled, (state, action) => {
         state.loading = false;
+        state.reset_token = action.payload.reset_token;
         state.resetIdentifier = action.payload.identifier;
         state.resetStep = "otp";
       })
@@ -165,7 +193,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* 🔐 VERIFY OTP */
+      /* 🔍 VERIFY OTP */
       .addCase(verifyResetOtp.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -197,6 +225,7 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.resetStep = "idle";
+        state.reset_token = null;
         state.resetIdentifier = "";
       });
   },

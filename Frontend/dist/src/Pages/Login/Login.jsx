@@ -1,4 +1,4 @@
-// 📌 src/pages/Auth/Login.jsx
+// 📌 src/Pages/Login/Login.jsx
 import React, { useEffect, useState } from "react";
 import "./Login.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,27 +15,28 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { user, loading, error, resetStep, resetIdentifier } = useSelector(
-    (state) => state.auth
-  );
+  const { user, loading, error, resetStep, reset_token, resetIdentifier } =
+    useSelector((state) => state.auth);
 
   // Login fields
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
 
-  // Forgot Password fields
-  const [forgotScreen, setForgotScreen] = useState("none");
+  // Forgot Password UI state
+  const [forgotScreen, setForgotScreen] = useState("none"); // 'none' | 'identifier' | 'otp' | 'newPassword'
   const [forgotIdentifier, setForgotIdentifier] = useState("");
   const [forgotOtp, setForgotOtp] = useState("");
   const [newPassword, setNewPasswordInput] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  // Redirect if already logged in
+  // 🔹 Redirect to home if already logged in
   useEffect(() => {
-    if (user) navigate("/");
+    if (user) {
+      navigate("/", { replace: true });
+    }
   }, [user, navigate]);
 
-  // Clear error automatically
+  // 🔹 Auto clear error after 3s
   useEffect(() => {
     if (error) {
       const timeout = setTimeout(() => dispatch(clearAuthError()), 3000);
@@ -43,7 +44,7 @@ const Login = () => {
     }
   }, [error, dispatch]);
 
-  // 🔁 Sync Forgot Password UI with resetStep from Redux
+  // 🔹 Sync UI with resetStep
   useEffect(() => {
     if (resetStep === "otp") {
       setForgotScreen("otp");
@@ -65,16 +66,21 @@ const Login = () => {
     dispatch(loginUser({ identifier, password }));
   };
 
-  /* 🔁 SEND OTP for Password Reset */
+  /* 🔁 SEND OTP */
   const handleSendResetOtp = (e) => {
     e.preventDefault();
+    if (!forgotIdentifier.trim()) return;
     dispatch(requestPasswordReset({ identifier: forgotIdentifier }));
   };
 
-  /* 🔓 VERIFY OTP */
+  /* 🔍 VERIFY OTP */
   const handleVerifyResetOtp = (e) => {
     e.preventDefault();
-    dispatch(verifyResetOtp({ identifier: resetIdentifier, otp: forgotOtp }));
+    if (!reset_token) {
+      alert("Reset token missing. Please request OTP again.");
+      return;
+    }
+    dispatch(verifyResetOtp({ reset_token, otp: forgotOtp }));
   };
 
   /* 🔐 SET NEW PASSWORD */
@@ -84,16 +90,20 @@ const Login = () => {
       alert("Passwords do not match");
       return;
     }
+    if (!reset_token) {
+      alert("Reset token missing. Please start reset process again.");
+      return;
+    }
     dispatch(
       setNewPassword({
-        identifier: resetIdentifier,
-        otp: forgotOtp,
-        new_password: newPassword,
-        confirm_password: confirmNewPassword,
+        reset_token,
+        password: newPassword,
+        password2: confirmNewPassword,
       })
     );
   };
 
+  // While logged in, don't show login form
   if (user) return null;
 
   return (
@@ -101,18 +111,20 @@ const Login = () => {
       <div className="login-left"></div>
 
       <div className="login-right">
-        {/* NORMAL LOGIN SCREEN */}
+        {/* LOGIN NORMAL SCREEN */}
         {forgotScreen === "none" && (
           <form onSubmit={handleLogin} className="login-form">
             <h2 align="center">Login</h2>
+
             <input
               type="text"
-              placeholder="Email or Phone Number"
+              placeholder="Email / Phone / Username"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className="mb-2"
               required
             />
+
             <input
               type="password"
               placeholder="Password"
@@ -121,9 +133,11 @@ const Login = () => {
               className="mb-2"
               required
             />
+
             <button type="submit" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </button>
+
             {error && <p className="error">{error}</p>}
 
             <div className="login-links">
@@ -145,10 +159,11 @@ const Login = () => {
           </form>
         )}
 
-        {/* FORGOT STEP 1: Enter email/phone */}
+        {/* FORGOT STEP 1: ENTER IDENTIFIER */}
         {forgotScreen === "identifier" && (
           <form onSubmit={handleSendResetOtp} className="login-form">
             <h2 align="center">Reset Password</h2>
+
             <input
               type="text"
               placeholder="Email or Phone Number"
@@ -157,8 +172,13 @@ const Login = () => {
               className="mb-2"
               required
             />
-            <button type="submit">{loading ? "Sending..." : "Send OTP"}</button>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Sending..." : "Send OTP"}
+            </button>
+
             {error && <p className="error">{error}</p>}
+
             <button
               type="button"
               className="link-button mt-1"
@@ -173,6 +193,7 @@ const Login = () => {
         {forgotScreen === "otp" && (
           <form onSubmit={handleVerifyResetOtp} className="login-form">
             <h2 align="center">Verify OTP</h2>
+
             <input
               type="text"
               placeholder="Enter OTP"
@@ -181,15 +202,20 @@ const Login = () => {
               className="mb-2"
               required
             />
-            <button type="submit">{loading ? "Verifying..." : "Verify OTP"}</button>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Verifying..." : "Verify OTP"}
+            </button>
+
             {error && <p className="error">{error}</p>}
           </form>
         )}
 
-        {/* FORGOT STEP 3: SET NEW PASSWORD */}
+        {/* FORGOT STEP 3: NEW PASSWORD */}
         {forgotScreen === "newPassword" && (
           <form onSubmit={handleSetNewPassword} className="login-form">
             <h2 align="center">Set New Password</h2>
+
             <input
               type="password"
               placeholder="New Password"
@@ -198,15 +224,20 @@ const Login = () => {
               className="mb-2"
               required
             />
+
             <input
               type="password"
-              placeholder="Confirm New Password"
+              placeholder="Confirm Password"
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
               className="mb-2"
               required
             />
-            <button type="submit">{loading ? "Resetting..." : "Save Password"}</button>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Save Password"}
+            </button>
+
             {error && <p className="error">{error}</p>}
           </form>
         )}

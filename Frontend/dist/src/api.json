@@ -9,11 +9,13 @@
   },
   "Categories":{
     "list":"/api/categories/",
-    "detail":"api/categories/:id/"
+    "detail":"/api/categories/"
   },
   "Products":{
     "products":"/api/products/",
-    "product":"/api/products/:id",
-    "buy":"/api/products/:id/buy"
+    "product":"/api/products/",
+    "buy":"/api/products/",
+    "wishlist":"/api/wishlist/",
+    "wishlistRemove":"/api/wishlist/"
   }
 } 

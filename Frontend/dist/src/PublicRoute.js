@@ -1,12 +1,12 @@
-// src/ProtectedRoute.js
+// src/PublicRoute.js
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 
-const ProtectedRoute = ({ children }) => {
+const PublicRoute = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   const storedUser = JSON.parse(localStorage.getItem("user"));
 
-  return user || storedUser ? children : <Navigate to="/login" replace />;
+  return !user && !storedUser ? children : <Navigate to="/" replace />;
 };
 
-export default ProtectedRoute;
+export default PublicRoute;

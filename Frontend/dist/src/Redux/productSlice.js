@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
 });
 
+// 📌 Fetch All Products (Public)
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
   async (_, { rejectWithValue }) => {
@@ -23,8 +24,10 @@ const productSlice = createSlice({
   name: "products",
   initialState: {
     all: [],
+    one: null,
     loading: false,
     error: null,
+    message: null,
   },
   reducers: {},
   extraReducers: (builder) => {
