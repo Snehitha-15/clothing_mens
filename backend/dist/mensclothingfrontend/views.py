@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
-from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer
+from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer, RecommendedProductSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
@@ -19,6 +19,8 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import transaction
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from .recommendations import get_cached_recommendations
+
 User = get_user_model()
 
 
@@ -409,6 +411,15 @@ class CartRemoveItemView(APIView):
         item = get_object_or_404(CartItem, pk=pk, cart=cart)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class MyOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        orders = Order.objects.filter(user=request.user).order_by("-created_at")
+        serializer = OrderSerializer(orders, many=True, context={"request": request})
+        return Response(serializer.data)
+
 
 
 # Addresses (CRUD)
@@ -471,10 +482,8 @@ class CreateOrderView(APIView):
             if item.product.stock < item.quantity:
                 return Response({"error": f"Not enough stock for {item.product.name}"}, status=400)
             total += item.product.price * item.quantity
-
-        # ---------------------------
+            
         #       COD CHECKOUT  
-        # ---------------------------
         if payment_method == "COD":
             with transaction.atomic():
                 order = Order.objects.create(
@@ -503,10 +512,7 @@ class CreateOrderView(APIView):
                 "order_id": order.id,
                 "total": str(order.total)
             })
-
-        # ---------------------------
         #   RAZORPAY CHECKOUT
-        # ---------------------------
         elif payment_method == "RAZORPAY":
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
@@ -530,6 +536,47 @@ class CreateOrderView(APIView):
 
         else:
             return Response({"error": "Invalid payment method"}, status=400)
+        
+
+class CancelOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+
+        if order.status in ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"]:
+            return Response({"error": "Order cannot be cancelled now"}, status=400)
+
+        # restore stock for each item
+        for item in order.items.all():
+            item.product.stock += item.quantity
+            item.product.save()
+
+        order.status = "CANCELLED"
+        order.save()
+
+        return Response({"message": "Order cancelled successfully!"})
+    
+class OrderTrackView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+
+        return Response({
+            "order_id": order.id,
+            "status": order.status,
+            "timeline": [
+                {"stage": "PLACED", "completed": order.status in ["PLACED","CONFIRMED","PACKED","SHIPPED","OUT_FOR_DELIVERY","DELIVERED"]},
+                {"stage": "CONFIRMED", "completed": order.status in ["CONFIRMED","PACKED","SHIPPED","OUT_FOR_DELIVERY","DELIVERED"]},
+                {"stage": "PACKED", "completed": order.status in ["PACKED","SHIPPED","OUT_FOR_DELIVERY","DELIVERED"]},
+                {"stage": "SHIPPED", "completed": order.status in ["SHIPPED","OUT_FOR_DELIVERY","DELIVERED"]},
+                {"stage": "OUT_FOR_DELIVERY", "completed": order.status in ["OUT_FOR_DELIVERY","DELIVERED"]},
+                {"stage": "DELIVERED", "completed": order.status == "DELIVERED"},
+                {"stage": "CANCELLED", "completed": order.status == "CANCELLED"},
+            ]
+        })
+
         
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -620,3 +667,14 @@ class VerifyPaymentView(APIView):
             cart_items.delete()
 
         return Response({"message": "Payment successful, order placed", "order_id": order.id})
+    
+class RecommendationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        rec_ids = get_cached_recommendations(request.user)
+        products = Product.objects.filter(id__in=rec_ids)
+        # preserve order
+        ordered = sorted(products, key=lambda p: rec_ids.index(p.id))
+        serializer = RecommendedProductSerializer(ordered, many=True, context={'request': request})
+        return Response(serializer.data)

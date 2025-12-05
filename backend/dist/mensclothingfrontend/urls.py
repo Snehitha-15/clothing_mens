@@ -1,8 +1,7 @@
 from django.urls import path
 from .views import (LoginView, SignupView, LogoutView, ResetPasswordView, CategoryListView, CategoryDetailView, ProductListView, ProductDetailView, 
-    ReduceStockView, BannerListView, WishlistListCreateView, WishlistRemoveView,CartDetailView, CartAddUpdateView, CartRemoveItemView, AddressListCreateView, 
-    AddressDetailView, CreateOrderView, ProfileView,VerifyPaymentView, 
-)
+    ReduceStockView, BannerListView, WishlistListCreateView, WishlistRemoveView, CartDetailView, CartAddUpdateView, CartRemoveItemView, AddressListCreateView, 
+    AddressDetailView, CreateOrderView, ProfileView,VerifyPaymentView, RecommendationView, MyOrdersView, CancelOrderView, OrderTrackView)
 
 urlpatterns = [
     path('signup/', SignupView.as_view(), name='sigup'),
@@ -19,11 +18,15 @@ urlpatterns = [
     path('cart/', CartDetailView.as_view(), name='cart-detail'),
     path('cart/items/', CartAddUpdateView.as_view(), name='cart-add'),
     path('cart/items/<int:pk>/', CartRemoveItemView.as_view(), name='cart-remove-item'),
+    path("my-orders/", MyOrdersView.as_view(), name="my-orders"),
+    path("orders/<int:order_id>/cancel/", CancelOrderView.as_view(), name="cancel-order"),
+    path("orders/<int:order_id>/track/", OrderTrackView.as_view(), name="track-order"),
     path('addresses/', AddressListCreateView.as_view(), name='address-list-create'),
     path('addresses/<int:pk>/', AddressDetailView.as_view(), name='address-detail'),
     path('checkout/', CreateOrderView.as_view(), name='create-order'),
     path('profile/', ProfileView.as_view(), name='profile'),  
     path("razorpay/verify/", VerifyPaymentView.as_view()),
+    path('recommendations/', RecommendationView.as_view(), name='recommendations'),
     path('logout/', LogoutView.as_view(), name='logout')
 ]
 

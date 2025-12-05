@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -224,3 +225,24 @@ AUTHENTICATION_BACKENDS = [
     'mensclothingfrontend.backends.EmailOrPhoneBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+CELERY_BEAT_SCHEDULE = {
+    "refresh-recommendations-every-minute": {
+        "task": "mensclothingfrontend.tasks.recompute_all_user_recommendations",
+        "schedule": 60.0,  # every 1 minute
+    }
+}
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
+CELERY_TASK_ACKS_LATE = True
+CELERYD_POOL_RESTARTS = True
+CELERY_WORKER_POOL = "solo"
+
+
+CELERY_TIMEZONE = "Asia/Kolkata"

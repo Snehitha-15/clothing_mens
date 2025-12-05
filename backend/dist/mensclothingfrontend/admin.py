@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem, ProductVariant, SearchLog
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -62,6 +62,12 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'slug', 'parent')
     list_filter = ('parent',)
     search_fields = ('name',)
+    
+class ProductVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 1
+    fields = ("color", "size", "stock", "image")
+    show_change_link = True
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -70,6 +76,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'category__name')
     list_editable = ('price', 'stock')  # allows inline edit of price & stock
     ordering = ('id',)
+    inlines = [ProductVariantInline]
     
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
@@ -100,5 +107,12 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total', 'paid', 'payment_method', 'created_at')
+    list_display = ('id', 'user', 'total', 'paid', 'payment_method', 'status', 'created_at')
     inlines = [OrderItemInline]
+
+
+@admin.register(SearchLog)
+class SearchLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "query", "created_at")
+    search_fields = ("query",)
+    list_filter = ("created_at",)

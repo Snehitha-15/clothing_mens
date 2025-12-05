@@ -170,7 +170,6 @@ class AddressSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'created_at')
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    # flatten product fields
     name = serializers.CharField(source="product.name", read_only=True)
     description = serializers.CharField(source="product.description", read_only=True)
     image = serializers.ImageField(source="product.image", read_only=True)
@@ -195,4 +194,12 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ('id', 'user', 'address', 'total', 'paid', 'payment_method', 'payment_reference', 'created_at', 'items')
-        read_only_fields = ('user', 'total', 'paid', 'payment_reference', 'created_at')
+        read_only_fields = ('user', 'total', 'paid', 'payment_reference', 'status', 'created_at')
+        
+class RecommendedProductSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source='category.name', read_only=True)
+    image = serializers.ImageField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ('id','name','description','price','image','category','stock')
