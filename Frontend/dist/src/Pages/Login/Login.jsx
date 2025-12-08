@@ -114,7 +114,7 @@ const Login = () => {
         {/* LOGIN NORMAL SCREEN */}
         {forgotScreen === "none" && (
           <form onSubmit={handleLogin} className="login-form">
-            <h2 align="center">Login</h2>
+            <h2 align="center">Loggin</h2>
 
             <input
               type="text"
