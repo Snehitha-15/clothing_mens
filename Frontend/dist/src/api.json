@@ -17,5 +17,28 @@
     "buy":"/api/products/",
     "wishlist":"/api/wishlist/",
     "wishlistRemove":"/api/wishlist/"
+  },
+  "profile":{
+     "profile":"/api/profile/"
+  },
+  "Banner":{
+    "banner":"/api/banners/"
+  },
+  "cart": {
+    "cartDetail": "/api/cart/",
+    "cart": "/api/cart/items/"
+  },
+  "address": {
+  "list": "/api/addresses/"
+},
+"checkout": {
+  "createOrder": "/api/checkout/",
+  "verifyPayment": "/api/razorpay/verify/"
+},
+  "Orders": {
+    "myOrders": "/api/my-orders/",
+    "cancel": "/api/orders/",
+    "track": "/api/orders/"
   }
-} 
+}
+

@@ -1,22 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Button, Table } from "reactstrap";
 import { useNavigate } from "react-router-dom";
+
 import {
   increaseQuantity,
   decreaseQuantity,
-  removeFromCart,
-  clearCart,
+  clearCart
 } from "../../Redux/cartSlice";
+
+import { fetchCart, removeCartItem } from "../../Redux/cartSlice";
 
 const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, totalAmount } = useSelector((state) => state.cart);
+
+  const { items, totalAmount, loading } = useSelector((state) => state.cart);
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
+
+  if (loading) return <p className="text-center mt-5">Loading...</p>;
 
   const handlePlaceOrder = () => {
     if (items.length === 0) {
-      alert("Your cart is empty!");
+      alert("Cart is empty!");
       return;
     }
     navigate("/address");
@@ -41,23 +50,29 @@ const Cart = () => {
             <th>Remove</th>
           </tr>
         </thead>
+
         <tbody>
           {items.map((item) => (
             <tr key={item.id}>
               <td>
                 <img
-                  src={item.image}
-                  alt={item.name}
+                  src={item.product?.image}
+                  alt={item.product?.name}
                   width="70"
                   height="70"
                   style={{ objectFit: "cover", borderRadius: "5px" }}
                 />
               </td>
+
               <td>
-                <strong>{item.name}</strong>
-                <p style={{ fontSize: "12px", color: "#555" }}>{item.description}</p>
+                <strong>{item.product?.name}</strong>
+                <p style={{ fontSize: "12px", color: "#555" }}>
+                  {item.product?.description}
+                </p>
               </td>
-              <td>₹{item.price}</td>
+
+              <td>₹{item.product?.price}</td>
+
               <td className="text-center">
                 <Button
                   color="secondary"
@@ -67,7 +82,9 @@ const Cart = () => {
                 >
                   –
                 </Button>
+
                 <span>{item.quantity}</span>
+
                 <Button
                   color="secondary"
                   size="sm"
@@ -77,12 +94,14 @@ const Cart = () => {
                   +
                 </Button>
               </td>
-              <td>₹{item.price * item.quantity}</td>
+
+              <td>₹{item.product?.price * item.quantity}</td>
+
               <td>
                 <Button
                   color="danger"
                   size="sm"
-                  onClick={() => dispatch(removeFromCart(item.id))}
+                  onClick={() => dispatch(removeCartItem(item.id))}
                 >
                   Remove
                 </Button>
@@ -96,13 +115,13 @@ const Cart = () => {
         className="d-flex justify-content-between align-items-center mt-4"
         style={{ borderTop: "1px solid #ddd", paddingTop: "15px" }}
       >
-        <h5>Total Amount: ₹{totalAmount}</h5>
+        <h5>
+          Total Amount: ₹
+          {items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)}
+        </h5>
+
         <div>
-          <Button
-            color="danger"
-            className="me-2"
-            onClick={() => dispatch(clearCart())}
-          >
+          <Button color="danger" className="me-2" onClick={() => dispatch(clearCart())}>
             Clear Cart
           </Button>
           <Button color="success" onClick={handlePlaceOrder}>
@@ -113,5 +132,4 @@ const Cart = () => {
     </div>
   );
 };
-
 export default Cart;

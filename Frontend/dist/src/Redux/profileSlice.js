@@ -1,26 +1,18 @@
 // 📌 src/Redux/profileSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosInstance";
 import endpoints from "../api.json";
 
-const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-});
-
-// 🔥 FETCH PROFILE API
 export const fetchProfile = createAsyncThunk(
   "profile/fetchProfile",
   async (_, thunkAPI) => {
     try {
-      const token = localStorage.getItem("access_token");
-
+      const token = localStorage.getItem("access");
       if (!token) return thunkAPI.rejectWithValue("No token found");
 
-      const res = await API.get(endpoints.profile.profile, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      console.log("🔎 Calling PROFILE API:", endpoints.profile.profile);
+
+      const res = await API.get(endpoints.profile.profile); // No headers needed
 
       return res.data;
     } catch (err) {
@@ -35,31 +27,20 @@ const storedUser = localStorage.getItem("profileUser")
 
 const profileSlice = createSlice({
   name: "profile",
-  initialState: {
-    user: storedUser,
-    loading: false,
-    error: null,
-  },
-
+  initialState: { user: storedUser, loading: false, error: null },
   reducers: {
     clearProfile: (state) => {
       state.user = null;
       localStorage.removeItem("profileUser");
     },
   },
-
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProfile.pending, (state) => {
-        state.loading = true;
-      })
       .addCase(fetchProfile.fulfilled, (state, action) => {
-        state.loading = false;
         state.user = action.payload;
         localStorage.setItem("profileUser", JSON.stringify(action.payload));
       })
       .addCase(fetchProfile.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.payload;
       });
   },
