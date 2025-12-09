@@ -60,5 +60,9 @@ staticfiles/
 Thumbs.db
 .env
 # requirements.txt
+
+#celery
+celerybeat-schedule.dat
+
  
  
