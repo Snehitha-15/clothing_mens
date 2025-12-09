@@ -1,6 +1,6 @@
 import random
 from rest_framework import serializers
-from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem, ProductVariant
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -112,13 +112,25 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ['id', 'name', 'slug', 'subcategories']
 
+class ProductVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariant
+        fields = ["id", "color", "size", "stock", "image"]
 
 class ProductSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    variants= ProductVariantSerializer( many= True, read_only= True)
+    '''colors = serializers.SerializerMethodField()
+    sizes = serializers.SerializerMethodField()'''
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'image', 'category', 'stock']
+        fields = ["id", "name", "description", "price", "image", "variants"]
+
+    def get_colors(self, obj):
+        return obj.variants.values_list("color", flat=True).distinct()
+
+    def get_sizes(self, obj):
+        return obj.variants.values_list("size", flat=True).distinct()
 
 class BannerSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url=True)
@@ -136,17 +148,36 @@ class WishlistSerializer(serializers.ModelSerializer):
         from .serializers import ProductSerializer  # avoid circular import; or import at top
         return ProductSerializer(obj.product, context=self.context).data
 
-class CartItemSerializer(serializers.ModelSerializer):
+class CartProductSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source="category.name", read_only=True)
+    class Meta:
+        model = Product
+        fields = ("id", "name", "description", "category", "image", "price")
+
+class CartVariantSerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductVariant
+        fields = ("id", "product", "color", "size", "image", "stock")
+
+    def get_product(self, obj):
+        return {
+            "id": obj.product.id,
+            "name": obj.product.name,
+            "description": obj.product.description,
+            "price": str(obj.product.price),
+            "image": obj.product.image.url if obj.product.image else None,
+            "category": obj.product.category.name,
+        }
+
+class CartItemSerializer(serializers.ModelSerializer):
+    variant = CartVariantSerializer(read_only=True)
     subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
-        fields = ('id', 'product', 'quantity', 'subtotal')
-
-    def get_product(self, obj):
-        from .serializers import ProductSerializer
-        return ProductSerializer(obj.product, context=self.context).data
+        fields = ("id", "variant", "quantity", "subtotal")
 
     def get_subtotal(self, obj):
         return obj.subtotal()

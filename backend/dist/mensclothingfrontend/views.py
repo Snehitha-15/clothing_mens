@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem
+from .models import User, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem, ProductVariant
 from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer, RecommendedProductSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -309,26 +309,7 @@ class ProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
-class ReduceStockView(APIView):
-    permission_classes = [IsAuthenticated]
-    def post(self, request, pk):
-        try:
-            product = Product.objects.get(pk=pk)
-        except Product.DoesNotExist:
-            return Response({"error": "Product not found"}, status=404)
-
-        if product.stock <= 0:
-            return Response({"error": "Out of stock"}, status=400)
-
-        product.stock -= 1
-        product.save()
-
-        return Response({
-            "message": "Product purchased successfully",
-            "remaining_stock": product.stock
-        })
-        
+      
 class BannerListView(generics.ListAPIView):
     queryset = Banner.objects.filter(active=True).order_by('order')[:3]
     serializer_class = BannerSerializer
@@ -373,42 +354,130 @@ class CartAddUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        product_id = request.data.get('product_id')
-        quantity = int(request.data.get('quantity', 1))
-        product = get_object_or_404(Product, pk=product_id)
-
-        if product.stock < quantity:
-            return Response({'error': 'Not enough stock'}, status=status.HTTP_400_BAD_REQUEST)
-
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        item, created = CartItem.objects.get_or_create(cart=cart, product=product, defaults={'quantity': quantity})
+
+        # CASE 1 → MULTIPLE ITEMS
+        if "items" in request.data:
+            items = request.data["items"]
+
+            if not isinstance(items, list) or len(items) == 0:
+                return Response({"error": "Items must be a non-empty list"}, status=400)
+
+            added = []
+
+            for item_data in items:
+                variant_id = item_data.get("variant_id")
+                quantity = int(item_data.get("quantity", 1))
+
+                variant = get_object_or_404(ProductVariant, id=variant_id)
+
+                if variant.stock < quantity:
+                    return Response({"error": f"Not enough stock for variant {variant_id}"}, status=400)
+
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart,
+                    variant=variant,
+                    defaults={"quantity": quantity}
+                )
+
+                if not created:
+                    if variant.stock < cart_item.quantity + quantity:
+                        return Response({"error": f"Not enough stock for variant {variant_id}"}, status=400)
+                    cart_item.quantity += quantity
+                    cart_item.save()
+
+                added.append({
+                    "variant_id": variant_id,
+                    "quantity": cart_item.quantity
+                })
+
+            serializer = CartSerializer(cart, context={'request': request})
+            return Response({
+                "message": "Items added successfully",
+                "items": added,
+                "cart": serializer.data
+            })
+
+        # CASE 2 → SINGLE ITEM (old behavior)
+        variant_id = request.data.get("variant_id")
+        quantity = int(request.data.get("quantity", 1))
+
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+
+        if variant.stock < quantity:
+            return Response({"error": "Not enough stock"}, status=400)
+
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            variant=variant,
+            defaults={"quantity": quantity}
+        )
+
         if not created:
-            item.quantity += quantity
-            item.save()
+            if variant.stock < cart_item.quantity + quantity:
+                return Response({"error": "Not enough stock"}, status=400)
+            cart_item.quantity += quantity
+            cart_item.save()
+
         serializer = CartSerializer(cart, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=200)
 
     def put(self, request):
         # update quantity
-        product_id = request.data.get('product_id')
+        variant_id = request.data.get('variant_id')
         quantity = int(request.data.get('quantity', 1))
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        item = get_object_or_404(CartItem, cart=cart, product__id=product_id)
+        item = get_object_or_404(CartItem, cart=cart, variant_id=variant_id)
         if quantity <= 0:
             item.delete()
         else:
-            if item.product.stock < quantity:
+            if item.variant.stock < quantity:
                 return Response({'error': 'Not enough stock'}, status=status.HTTP_400_BAD_REQUEST)
             item.quantity = quantity
             item.save()
         serializer = CartSerializer(cart, context={'request': request})
+        return Response(serializer.data)
+    
+    def patch(self, request):
+        old_variant_id = request.data.get("old_variant_id")
+        new_variant_id = request.data.get("new_variant_id")
+
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        if not old_variant_id or not new_variant_id:
+            return Response({"error": "old_variant_id and new_variant_id required"}, status=400)
+
+        old_item = get_object_or_404(CartItem, cart=cart, variant_id=old_variant_id)
+        old_quantity = old_item.quantity
+
+        new_variant = get_object_or_404(ProductVariant, id=new_variant_id)
+
+    # Check stock
+        if new_variant.stock < old_quantity:
+            return Response({"error": "Not enough stock for new variant"}, status=400)
+
+    # Delete old item
+        old_item.delete()
+
+    # Add or update new item
+        new_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            variant=new_variant,
+            defaults={"quantity": old_quantity}
+        )
+
+        if not created:
+            new_item.quantity += old_quantity
+            new_item.save()
+
+        serializer = CartSerializer(cart)
         return Response(serializer.data)
 
 class CartRemoveItemView(APIView):
     permission_classes = [IsAuthenticated]
     def delete(self, request, pk):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        item = get_object_or_404(CartItem, pk=pk, cart=cart)
+        item = get_object_or_404(CartItem, id=pk, cart=cart)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -444,99 +513,99 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
-
 class CreateOrderView(APIView):
-    
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
 
-        # Selected cart items or entire cart
         item_ids = request.data.get("items", [])
         payment_method = request.data.get("payment_method", "COD").upper()
         address_id = request.data.get("address_id")
 
-        # Load cart items
+        # ---- Load cart items ----
         if item_ids:
             cart_items = CartItem.objects.filter(id__in=item_ids, cart__user=user)
         else:
-            cart, _ = Cart.objects.get_or_create(user=user)
-            cart_items = cart.items.all()
+            cart_items = CartItem.objects.filter(cart__user=user)
 
         if not cart_items.exists():
-            return Response({"error": "No cart items found"}, status=400)
+            return Response({"error": "Cart is empty"}, status=400)
 
-        # Get address
-        if address_id:
-            address = get_object_or_404(Address, id=address_id, user=user)
-        else:
+        # ---- Load address ----
+        address = Address.objects.filter(user=user, id=address_id).first()
+
+        if not address:
             address = Address.objects.filter(user=user, is_default=True).first()
 
         if not address:
-            return Response({"error": "Address is required"}, status=400)
+            return Response({"error": "Address required"}, status=400)
 
-        # Calculate total
+        # ---- Check stock & total ----
         total = Decimal("0.00")
+
         for item in cart_items:
-            if item.product.stock < item.quantity:
-                return Response({"error": f"Not enough stock for {item.product.name}"}, status=400)
-            total += item.product.price * item.quantity
-            
-        #       COD CHECKOUT  
+            variant = item.variant
+
+            if variant.stock < item.quantity:
+                return Response({"error": f"Not enough stock for {variant.product.name}"}, status=400)
+
+            # REAL variant price = product price
+            total += variant.product.price * item.quantity
+
+        # ---- COD ----
         if payment_method == "COD":
             with transaction.atomic():
+
                 order = Order.objects.create(
                     user=user,
                     address=address,
                     total=total,
                     paid=False,
-                    payment_method="COD"
+                    payment_method="COD",
                 )
 
                 for item in cart_items:
+                    variant = item.variant
+
                     OrderItem.objects.create(
                         order=order,
-                        product=item.product,
-                        price=item.product.price,
+                        product=variant.product,
+                        price=variant.product.price,
                         quantity=item.quantity
                     )
-                    # Reduce stock
-                    item.product.stock -= item.quantity
-                    item.product.save()
+
+                    variant.stock -= item.quantity
+                    variant.save()
 
                 cart_items.delete()
 
             return Response({
-                "message": "Order placed successfully (COD)",
+                "message": "Order placed successfully",
                 "order_id": order.id,
                 "total": str(order.total)
             })
-        #   RAZORPAY CHECKOUT
-        elif payment_method == "RAZORPAY":
+
+        # ---- Razorpay ----
+        if payment_method == "RAZORPAY":
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-            amount_paise = int(total * 100)
-
-            razorpay_order = client.order.create({
-                "amount": amount_paise,
+            rzp_order = client.order.create({
+                "amount": int(total * 100),
                 "currency": "INR",
                 "payment_capture": 1
             })
 
             return Response({
                 "message": "Razorpay order created",
-                "razorpay_order_id": razorpay_order["id"],
+                "razorpay_order_id": rzp_order["id"],
                 "amount": str(total),
-                "amount_paisa": amount_paise,
                 "items": [item.id for item in cart_items],
-                "key": settings.RAZORPAY_KEY_ID,
-                "address_id": address.id
+                "address_id": address.id,
+                "key": settings.RAZORPAY_KEY_ID
             })
 
-        else:
-            return Response({"error": "Invalid payment method"}, status=400)
-        
+        return Response({"error": "Invalid payment method"}, status=400)
 
 class CancelOrderView(APIView):
     permission_classes = [IsAuthenticated]
@@ -556,6 +625,62 @@ class CancelOrderView(APIView):
         order.save()
 
         return Response({"message": "Order cancelled successfully!"})
+class CancelOrderItemView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id, item_id):
+        # 1. fetch order and item (user must own the order)
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        item = get_object_or_404(OrderItem, id=item_id, order=order)
+
+        # 2. validations
+        if item.status != 'ACTIVE':
+            return Response({"error": "This item is already cancelled or refunded"}, status=400)
+
+        # disallow cancel if whole order is already shipped/delivered/cancelled
+        if order.status in ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"]:
+            return Response({"error": "Order cannot be modified at this stage"}, status=400)
+        with transaction.atomic():
+            # restore stock
+            product = item.product
+            # if you use ProductVariant instead, update variant.stock instead.
+            product.stock = (product.stock or 0) + item.quantity
+            product.save()
+
+            # mark item cancelled
+            item.status = 'CANCELLED'
+            item.cancelled_at = timezone.now()
+
+            # if order was paid online, mark refund pending
+            if order.paid and order.payment_method != 'COD':
+                item.refund_status = 'PENDING'
+            else:
+                item.refund_status = 'NONE'
+
+            item.save()
+
+            # adjust order total
+            amount_to_subtract = (item.price * item.quantity)
+            order.total = Decimal(order.total) - Decimal(amount_to_subtract)
+            # if total becomes <= 0, mark whole order cancelled
+            if order.total <= 0:
+                order.total = Decimal('0.00')
+                order.status = 'CANCELLED'
+            order.save()
+
+        # 4. response
+        resp = {
+            "message": "Item cancelled successfully",
+            "item_id": item.id,
+            "order_id": order.id,
+            "new_order_total": str(order.total),
+            "refund_status": item.refund_status
+        }
+
+        if item.refund_status == 'PENDING':
+            resp["note"] = "Order was paid online — refund will be processed and reflected in refund_status when complete."
+
+        return Response(resp)
     
 class OrderTrackView(APIView):
     permission_classes = [IsAuthenticated]
@@ -611,15 +736,14 @@ class VerifyPaymentView(APIView):
         razorpay_order_id = data.get("razorpay_order_id")
         razorpay_payment_id = data.get("razorpay_payment_id")
         razorpay_signature = data.get("razorpay_signature")
-        items = data.get("items", [])
+        item_ids = data.get("items", [])
         address_id = data.get("address_id")
 
         if not (razorpay_order_id and razorpay_payment_id and razorpay_signature):
             return Response({"error": "Missing payment details"}, status=400)
 
-        # Verify Razorpay signature
+        # Verify payment
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-
         try:
             client.utility.verify_payment_signature({
                 "razorpay_order_id": razorpay_order_id,
@@ -630,8 +754,8 @@ class VerifyPaymentView(APIView):
             return Response({"error": "Invalid payment signature"}, status=400)
 
         # Load cart items
-        if items:
-            cart_items = CartItem.objects.filter(id__in=items, cart__user=user)
+        if item_ids:
+            cart_items = CartItem.objects.filter(id__in=item_ids, cart__user=user)
         else:
             cart_items = CartItem.objects.filter(cart__user=user)
 
@@ -641,9 +765,9 @@ class VerifyPaymentView(APIView):
         # Load address
         address = get_object_or_404(Address, id=address_id, user=user)
 
-        # Create final order
+        # Create order
         with transaction.atomic():
-            total = sum(item.product.price * item.quantity for item in cart_items)
+            total = sum(item.variant.price * item.quantity for item in cart_items)
 
             order = Order.objects.create(
                 user=user,
@@ -657,16 +781,22 @@ class VerifyPaymentView(APIView):
             for item in cart_items:
                 OrderItem.objects.create(
                     order=order,
-                    product=item.product,
-                    price=item.product.price,
+                    product=item.variant.product,
+                    price=item.variant.price,
                     quantity=item.quantity
                 )
-                item.product.stock -= item.quantity
-                item.product.save()
+
+                # Reduce stock based on variant
+                item.variant.stock -= item.quantity
+                item.variant.save()
 
             cart_items.delete()
 
-        return Response({"message": "Payment successful, order placed", "order_id": order.id})
+        return Response({
+            "message": "Payment verified & order created",
+            "order_id": order.id
+        })
+
     
 class RecommendationView(APIView):
     permission_classes = [IsAuthenticated]

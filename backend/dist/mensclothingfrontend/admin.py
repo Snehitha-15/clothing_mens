@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem, ProductVariant, SearchLog
+from .models import (User, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, 
+                    OrderItem, ProductVariant, SearchLog,)
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -71,10 +72,10 @@ class ProductVariantInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category', 'price', 'stock')
+    list_display = ('id', 'name', 'category', 'price',)
     list_filter = ('category',)
     search_fields = ('name', 'category__name')
-    list_editable = ('price', 'stock')  # allows inline edit of price & stock
+    list_editable = ('price',)  # allows inline edit of price & stock
     ordering = ('id',)
     inlines = [ProductVariantInline]
     

@@ -1,21 +1,41 @@
 // src/components/TopBannerSection.jsx
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import mensBanner from "../assets/images/Banner/mensBanner.jpg";
-import banner2 from "../assets/images/Banner/banner2.jpg";
-import banner3 from "../assets/images/Banner/banner3.jpg";
 
-const carouselImages = [
-  { id: 1, src: mensBanner },
-  { id: 2, src: banner2 },
-  { id: 3, src: banner3 },
-];
+import { useDispatch, useSelector } from "react-redux";
+import { fetchBanners } from "../Redux/bannerSlice";
+
+// Optional fallback banners if backend gives empty array
+import fallback1 from "../assets/images/Banner/mensBanner.jpg";
+import fallback2 from "../assets/images/Banner/banner2.jpg";
+import fallback3 from "../assets/images/Banner/banner3.jpg";
 
 const TopBannerSection = () => {
-  const [index, setIndex] = useState(0);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const [index, setIndex] = useState(0);
+
+  // Redux banner data
+  const banners = useSelector((state) => state.banners.data || []);
+
+  // If backend gives empty banners → use fallback static banners
+  const carouselImages =
+    banners?.length > 0
+      ? banners.map((banner) => ({ id: banner.id, src: banner.image }))
+      : [
+          { id: 1, src: fallback1 },
+          { id: 2, src: fallback2 },
+          { id: 3, src: fallback3 },
+        ];
+
+  // Fetch banners on load
+  useEffect(() => {
+    dispatch(fetchBanners());
+  }, [dispatch]);
 
   // Auto-slide every 3 seconds
   useEffect(() => {
@@ -23,7 +43,7 @@ const TopBannerSection = () => {
       setIndex((prev) => (prev + 1) % carouselImages.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [carouselImages.length]);
 
   return (
     <div
@@ -32,50 +52,41 @@ const TopBannerSection = () => {
         position: "relative",
         width: "100%",
         overflow: "hidden",
-        aspectRatio: "16 / 5", 
-        borderRadius: "0px",
+        aspectRatio: "16 / 5",
       }}
     >
-      {/* 🌀 Full-width Auto Carousel */}
+      {/* Auto Carousel */}
       <AnimatePresence mode="wait">
         <motion.img
           key={carouselImages[index].id}
           src={carouselImages[index].src}
-          alt="Men's Fashion Banner"
+          alt="Top Banner"
           initial={{ opacity: 0, scale: 1.03 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.03 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.7 }}
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "fill", // ensures full image is visible
+            objectFit: "fill",
             objectPosition: "center",
           }}
         />
       </AnimatePresence>
 
-      {/* 🛍️ Shop Now Button */}
+      {/* CTA Button */}
       <Button
         onClick={() => navigate("/products")}
         className="banner-button"
-        // onMouseEnter={(e) => {
-        //   e.target.style.transform = "scale(1.05)";
-        //   e.target.style.boxShadow = "0 6px 14px rgba(0, 0, 0, 0.4)";
-        // }}
-        // onMouseLeave={(e) => {
-        //   e.target.style.transform = "scale(1)";
-        //   e.target.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.3)";
-        // }}
       >
         Shop Now
       </Button>
 
-      {/* ⚫ Dots */}
+      {/* Dots */}
       <div
         style={{
           position: "absolute",
-          bottom: "3%",
+          bottom: "4%",
           left: "50%",
           transform: "translateX(-50%)",
           display: "flex",
@@ -90,7 +101,7 @@ const TopBannerSection = () => {
               width: "10px",
               height: "10px",
               borderRadius: "50%",
-              backgroundColor: i === index ? "#fff" : "rgba(255,255,255,0.5)",
+              backgroundColor: i === index ? "#fff" : "rgba(255,255,255,0.4)",
               cursor: "pointer",
               transition: "all 0.3s ease",
             }}
@@ -98,7 +109,7 @@ const TopBannerSection = () => {
         ))}
       </div>
 
-      {/* 🌈 Optional Gradient Overlay */}
+      {/* Bottom gradient */}
       <div
         style={{
           position: "absolute",
@@ -106,7 +117,7 @@ const TopBannerSection = () => {
           left: 0,
           width: "100%",
           height: "20%",
-          background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)",
+          background: "linear-gradient(to top, rgba(0,0,0,0.5), transparent)",
           pointerEvents: "none",
         }}
       ></div>

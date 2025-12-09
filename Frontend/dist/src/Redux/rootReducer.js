@@ -7,6 +7,10 @@ import wishlistReducer from "./wishlistSlice";
 import categoryReducer from "./categorySlice";
 import productReducer from "./productSlice";
 import profileReducer from "./profileSlice";
+import bannerReducer from "./bannerSlice";
+import addressReducer from "./addressSlice";
+import checkoutReducer from "./checkoutSlice"
+import myOrdersReducer from "./myOrderSlice";
 
 
 
@@ -16,9 +20,11 @@ const rootReducer = combineReducers({
   wishlist: wishlistReducer, 
   categories: categoryReducer,
   products: productReducer,
-  profile: profileReducer,   // ONLY THIS HANDLES USER
-
-
+  profile: profileReducer,
+  banners: bannerReducer,
+  address: addressReducer,
+  checkout:checkoutReducer,
+  orders: myOrdersReducer, 
 
 });
 

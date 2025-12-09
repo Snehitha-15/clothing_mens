@@ -14,16 +14,19 @@ import CheckoutHeader from "../components/Header/CheckoutHeader";
 import Footer from "../components/footer/Footer";
 
 import Products from "../Pages/products/Products";
-import AddressPage from "../Pages/Checkout/Address";
-import PaymentPage from "../Pages/Checkout/Payment";
+import AddressPage from "../Pages/Checkout/AddressPage";
+import PaymentPage from "../Pages/Checkout/PaymentPage";
 import OrderSuccess from "../Pages/Checkout/OrderSuccess";
 import Cart from "../Pages/cart/Cart";
-import HomePage from "../Pages/HomePage";
+import HomePage from "../Pages/Homepage/HomePage";
 import Login from "../Pages/Login/Login";
 import Signup from "../Pages/Login/Signup";
 import ProtectedRoute from "../ProtectedRoute";
 import PublicRoute from "../PublicRoute";
 import Wishlist from "../Pages/Wishlist/wishlist";
+import ProductDetails from "../Pages/products/productDetails";
+import MyOrders from "../Pages/myOrders/MyOrders"; 
+
 
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCategories } from "../Redux/categorySlice";
@@ -74,10 +77,9 @@ const AppContent = () => {
       <Routes>
         {/* Public Routes */}
          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-  <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-
-        <Route path="/" element={<HomePage />} />
-        <Route
+         <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+         <Route path="/" element={<HomePage />} />
+         <Route
           path="/products"
           element={<Products selectedCategory={selectedCategory} searchQuery={searchQuery} />}
         />
@@ -88,9 +90,16 @@ const AppContent = () => {
         <Route path="/address" element={<ProtectedRoute><AddressPage /></ProtectedRoute>} />
         <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
         <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
+        <Route path="/orders" element={<ProtectedRoute><MyOrders/></ProtectedRoute>} />
 
         {/* Default Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
+      <Route
+        path="/product/:id"
+        element={<ProductDetails />}
+      />
+
       </Routes>
 
       {/* Footer only when logged in */}
@@ -107,3 +116,5 @@ export default function AppRoutes() {
     </Router>
   );
 }
+
+       

@@ -1,9 +1,12 @@
 // 📌 src/Redux/authSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import API from "../api/axiosIntance";
+import API from "../api/axiosInstance";
 import endpoints from "../api.json";
+import { fetchProfile } from "./profileSlice";
 
-/* 🔐 SIGNUP (multi-step backend – you already handle userData) */
+/* =========================================================
+   🔐 SIGNUP
+========================================================= */
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async (userData, thunkAPI) => {
@@ -20,47 +23,52 @@ export const signupUser = createAsyncThunk(
   }
 );
 
-/* 🔐 LOGIN */
+/* =========================================================
+   🔐 LOGIN
+========================================================= */
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ identifier, password }, thunkAPI) => {
     try {
-      console.log("📤 Sending Login:", { identifier, password });
-
-      // 🔹 Backend expects: { identifier, password }
       const response = await API.post(endpoints.auth.login, {
         identifier,
         password,
       });
 
-      console.log("🎯 Login Response:", response.data);
-
       const { access, refresh } = response.data;
 
-      // 🔹 Save tokens
+      // Store Tokens
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
-      // 🔹 Fetch profile (ProfileView)
-      const profileResponse = await API.get("/api/profile/");
-      const user = profileResponse.data;
+      // Fetch profile after login
+      thunkAPI.dispatch(fetchProfile());
 
-      localStorage.setItem("user", JSON.stringify(user));
-
-      return { user };
+      return { user: response.data };
     } catch (err) {
-      console.error("❌ Login Error:", err.response?.data || err.message);
-
       return thunkAPI.rejectWithValue(
-        err.response?.data?.error ||
-          err.response?.data?.detail ||
+        err.response?.data?.detail ||
+          err.response?.data?.error ||
           "Invalid credentials"
       );
     }
   }
 );
 
-/* 🔁 REQUEST OTP (ResetPasswordView → step = send_otp) */
+/* =========================================================
+   🚪 LOGOUT
+========================================================= */
+export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  localStorage.removeItem("user");
+  localStorage.removeItem("profileUser");
+  return true;
+});
+
+/* =========================================================
+   🔁 SEND OTP (STEP 1)
+========================================================= */
 export const requestPasswordReset = createAsyncThunk(
   "auth/requestPasswordReset",
   async ({ identifier }, thunkAPI) => {
@@ -70,8 +78,10 @@ export const requestPasswordReset = createAsyncThunk(
         identifier,
       });
 
-      // backend returns: { message, reset_token }
-      return { reset_token: res.data.reset_token, identifier };
+      return {
+        reset_token: res.data.reset_token,
+        identifier,
+      };
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.error || "Failed to send OTP"
@@ -80,7 +90,9 @@ export const requestPasswordReset = createAsyncThunk(
   }
 );
 
-/* 🔍 VERIFY OTP (ResetPasswordView → step = verify_otp) */
+/* =========================================================
+   🔍 VERIFY OTP (STEP 2)
+========================================================= */
 export const verifyResetOtp = createAsyncThunk(
   "auth/verifyResetOtp",
   async ({ reset_token, otp }, thunkAPI) => {
@@ -90,6 +102,7 @@ export const verifyResetOtp = createAsyncThunk(
         reset_token,
         otp,
       });
+
       return true;
     } catch (err) {
       return thunkAPI.rejectWithValue(
@@ -99,7 +112,9 @@ export const verifyResetOtp = createAsyncThunk(
   }
 );
 
-/* 🔐 SET NEW PASSWORD (ResetPasswordView → step = reset_password) */
+/* =========================================================
+   🔐 SET NEW PASSWORD (STEP 3)
+========================================================= */
 export const setNewPassword = createAsyncThunk(
   "auth/setNewPassword",
   async ({ reset_token, password, password2 }, thunkAPI) => {
@@ -110,6 +125,7 @@ export const setNewPassword = createAsyncThunk(
         password,
         password2,
       });
+
       return true;
     } catch (err) {
       return thunkAPI.rejectWithValue(
@@ -119,37 +135,40 @@ export const setNewPassword = createAsyncThunk(
   }
 );
 
-/* 🚪 LOGOUT */
-export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("access");
-  localStorage.removeItem("refresh");
-  return true;
-});
-
-/* 🔹 Initial State from localStorage */
+/* =========================================================
+   Load user from localStorage
+========================================================= */
 const savedUser = localStorage.getItem("user")
   ? JSON.parse(localStorage.getItem("user"))
   : null;
 
+/* =========================================================
+   AUTH SLICE
+========================================================= */
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: savedUser,
     loading: false,
     error: null,
-    resetStep: "idle", // 'idle' | 'otp' | 'newPassword' | 'done'
+
+    // Reset Password Flow
+    resetStep: "idle", // idle | otp | newPassword | done
     reset_token: null,
     resetIdentifier: "",
   },
+
   reducers: {
     clearAuthError: (state) => {
       state.error = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
-      /* 🔐 SIGNUP */
+      /* --------------------------------------------------
+         SIGNUP
+      -------------------------------------------------- */
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -163,7 +182,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* 🔐 LOGIN */
+      /* --------------------------------------------------
+         LOGIN
+      -------------------------------------------------- */
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -177,7 +198,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* 🔁 REQUEST OTP */
+      /* --------------------------------------------------
+         RESET STEP 1: SEND OTP
+      -------------------------------------------------- */
       .addCase(requestPasswordReset.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -186,42 +209,48 @@ const authSlice = createSlice({
         state.loading = false;
         state.reset_token = action.payload.reset_token;
         state.resetIdentifier = action.payload.identifier;
-        state.resetStep = "otp";
+        state.resetStep = "otp"; // Move UI → OTP screen
       })
       .addCase(requestPasswordReset.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      /* 🔍 VERIFY OTP */
+      /* --------------------------------------------------
+         RESET STEP 2: VERIFY OTP
+      -------------------------------------------------- */
       .addCase(verifyResetOtp.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(verifyResetOtp.fulfilled, (state) => {
         state.loading = false;
-        state.resetStep = "newPassword";
+        state.resetStep = "newPassword"; // Move UI → New Password screen
       })
       .addCase(verifyResetOtp.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      /* 🔐 SET NEW PASSWORD */
+      /* --------------------------------------------------
+         RESET STEP 3: SET NEW PASSWORD
+      -------------------------------------------------- */
       .addCase(setNewPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(setNewPassword.fulfilled, (state) => {
         state.loading = false;
-        state.resetStep = "done";
+        state.resetStep = "done"; // Final step
       })
       .addCase(setNewPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      /* 🚪 LOGOUT */
+      /* --------------------------------------------------
+         LOGOUT
+      -------------------------------------------------- */
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.resetStep = "idle";

@@ -1,28 +1,32 @@
-// src/Pages/products/Products.jsx
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart as solidHeart } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as regularHeart } from "@fortawesome/free-regular-svg-icons";
+
 import {
   Card, CardBody, CardImg, CardTitle, CardText,
   Button, Row, Col,
 } from "reactstrap";
+
 import {
-  addToCart, increaseQuantity, decreaseQuantity,
+  increaseQuantity,
+  decreaseQuantity,
+  addOrUpdateCart
 } from "../../Redux/cartSlice";
+
 import {
-  addToWishlist, removeFromWishlist, fetchWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  fetchWishlist
 } from "../../Redux/wishlistSlice";
-import { fetchProducts } from "../../Redux/productSlice"; // 🔹 Import fetchProducts
-import { fetchCategories } from "../../Redux/categorySlice"; // 🔹 Optional: Get categories
+
+import { fetchProducts } from "../../Redux/productSlice";
+import { fetchCategories } from "../../Redux/categorySlice";
+
 import { useLocation, useNavigate } from "react-router-dom";
 
 const Products = ({ selectedCategory }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // 🔹 ALWAYS FETCH PRODUCTS (even when user is not logged in)
   useEffect(() => {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
@@ -37,11 +41,8 @@ const Products = ({ selectedCategory }) => {
   const searchQuery =
     new URLSearchParams(location.search).get("search")?.toLowerCase() || "";
 
-  // 🔹 Fetch wishlist only when logged in
   useEffect(() => {
-    if (user) {
-      dispatch(fetchWishlist());
-    }
+    if (user) dispatch(fetchWishlist());
   }, [dispatch, user]);
 
   let filteredProducts = products;
@@ -62,13 +63,11 @@ const Products = ({ selectedCategory }) => {
     );
   }
 
-const getWishlistItem = (productId) =>
-  wishlistItems.find(
-    (item) =>
-      item?.product === productId ||          // when backend returns product ID
-      item?.product?.id === productId         // when backend returns product object
-  );
-
+  const getWishlistItem = (productId) =>
+    wishlistItems.find(
+      (item) =>
+        item?.product === productId || item?.product?.id === productId
+    );
 
   return (
     <div className="products-container px-4 py-3">
@@ -77,57 +76,74 @@ const getWishlistItem = (productId) =>
       ) : (
         <Row className="g-3 justify-content-start" style={{ margin: 0 }}>
           {filteredProducts.map((item) => {
-            const cartItem = cartItems.find((i) => i.id === item.id);
+            const cartItem = cartItems.find((c) => c.id === item.id);
             const wishlistItem = getWishlistItem(item.id);
 
             return (
               <Col xs="12" sm="6" md="4" lg="3" xl="2" key={item.id} className="d-flex px-2 mb-3">
                 <Card className="shadow-md w-100" style={{ borderRadius: "12px", overflow: "hidden" }}>
                   <div style={{ position: "relative", height: "300px" }}>
-                    <CardImg src={item.image} alt={item.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <CardImg
+                      src={item.image}
+                      alt={item.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
 
                     {/* ❤️ Wishlist Button */}
-                    <button
+<button
   onClick={() => {
     if (!user) {
       navigate("/login");
     } else {
-      if (wishlistItem) {
-        dispatch(removeFromWishlist(wishlistItem.id));
-      } else {
-        dispatch(addToWishlist(item.id));
-      }
+      wishlistItem
+        ? dispatch(removeFromWishlist(wishlistItem.id))
+        : dispatch(addToWishlist(item.id));
     }
   }}
   style={{
     position: "absolute",
     top: "10px",
     right: "10px",
-    background: "white",
+    background: "transparent",
     border: "none",
-    borderRadius: "50%",
-    padding: "7px",
+    padding: "10px",
+    margin: "0",
+    outline: "none",
     cursor: user ? "pointer" : "not-allowed",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-    transition: "transform 0.2s ease",
   }}
-  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
-  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
 >
   {wishlistItem ? (
-    // 🔴 Red Heart - Wishlisted
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="red" viewBox="0 0 16 16">
-      <path d="M8 2.748-.717-.737C5.6-.281 2.514 1.07 1.4 3.053c-1.118 2-.532 4.385 1.212 5.904L8 15l5.388-6.043c1.744-1.519 2.33-3.904 1.212-5.904C13.486 1.07 10.4-.28 8.717.011L8 2.748z" />
+    // ❤️ SAME STYLE — BIGGER FILLED HEART
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 16 16"
+      style={{ transform: "scale(1.7)" }}   // ⭐ SAME LOOK, BIGGER SIZE
+      fill="red"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M8 2.748-.717-.737C5.6-.281 2.514 1.07 1.4 3.053c-1.118 2-.532 4.385 
+      1.212 5.904L8 15l5.388-6.043c1.744-1.519 2.33-3.904 
+      1.212-5.904C13.486 1.07 10.4-.28 8.717.011L8 2.748z" />
     </svg>
   ) : (
-    // 🤍 Outlined Heart - Not Wishlisted
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="black" viewBox="0 0 16 16">
-      <path d="M8 2.748-.717-.737C5.6-.281 2.514 1.07 1.4 3.053c-1.118 2-.532 4.385 1.212 5.904L8 15l5.388-6.043c1.744-1.519 2.33-3.904 1.212-5.904C13.486 1.07 10.4-.28 8.717.011L8 2.748z" />
+    // 🤍 SAME STYLE — BIGGER OUTLINE HEART
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 16 16"
+      style={{ transform: "scale(1.7)" }}  
+      fill="none"
+      stroke="black"
+      strokeWidth="1"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M8 2.748-.717-.737C5.6-.281 2.514 1.07 1.4 3.053c-1.118 2-.532 4.385 
+      1.212 5.904L8 15l5.388-6.043c1.744-1.519 2.33-3.904 
+      1.212-5.904C13.486 1.07 10.4-.28 8.717.011L8 2.748z" />
     </svg>
   )}
 </button>
-
 
                   </div>
 
@@ -135,6 +151,7 @@ const getWishlistItem = (productId) =>
                     <CardTitle tag="h6" className="fw-bold mb-2">
                       {item.name}
                     </CardTitle>
+
                     <CardText style={{ fontSize: "13px", color: "#666" }}>
                       {item.description}
                     </CardText>
@@ -144,16 +161,32 @@ const getWishlistItem = (productId) =>
 
                       {cartItem ? (
                         <div className="d-flex align-items-center gap-2">
-                          <Button size="sm" onClick={() => dispatch(decreaseQuantity(item.id))}>
+                          <Button
+                            size="sm"
+                            onClick={() => dispatch(decreaseQuantity(item.id))}
+                          >
                             −
                           </Button>
+
                           <span>{cartItem.quantity}</span>
-                          <Button size="sm" onClick={() => dispatch(increaseQuantity(item.id))}>
+
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              dispatch(addOrUpdateCart({ product_id: item.id, quantity: cartItem.quantity + 1 }))
+                            }
+                          >
                             +
                           </Button>
                         </div>
                       ) : (
-                        <Button size="sm" color="dark" onClick={() => dispatch(addToCart(item))}>
+                        <Button
+                          size="sm"
+                          color="dark"
+                          onClick={() =>
+                            dispatch(addOrUpdateCart({ product_id: item.id, quantity: 1 }))
+                          }
+                        >
                           Add to Cart
                         </Button>
                       )}
