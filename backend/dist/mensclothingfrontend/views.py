@@ -8,7 +8,9 @@ from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, OTP, Category, Product, Banner, WishlistItem, Cart, CartItem, Address, Order, OrderItem, ProductVariant
-from .serializers import SignupSerializer, LoginSerializer, ResetPasswordSerializer, ProductSerializer, CategorySerializer, BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer, RecommendedProductSerializer
+from .serializers import (SignupSerializer, LoginSerializer, ResetPasswordSerializer, ProductSerializer, CategorySerializer, 
+                        BannerSerializer, WishlistSerializer, CartSerializer, CartItemSerializer, AddressSerializer, OrderSerializer, 
+                        RecommendedProductSerializer, )
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
@@ -309,6 +311,41 @@ class ProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    
+class ProductReviewView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, product_id):
+        product = get_object_or_404(Product, id=product_id)
+        rating = request.data.get("rating")
+        comment = request.data.get("comment", "")
+        variant_id = request.data.get("variant_id")  # optional
+
+        variant = None
+        if variant_id:
+            variant = ProductVariant.objects.filter(id=variant_id).first()
+
+        if not rating:
+            return Response({"error": "Rating is required"}, status=400)
+
+        # Create or update review
+        review, created = ProductReview.objects.update_or_create(
+            product=product,
+            user=request.user,
+            variant=variant,
+            defaults={"rating": rating, "comment": comment}
+        )
+
+        # Save multiple images
+        images = request.FILES.getlist("images")
+        for img in images:
+            ProductReviewImage.objects.create(review=review, image=img)
+
+        return Response({
+            "message": "Review submitted successfully",
+            "review": ProductReviewSerializer(review).data
+        })
+
       
 class BannerListView(generics.ListAPIView):
     queryset = Banner.objects.filter(active=True).order_by('order')[:3]
@@ -488,8 +525,6 @@ class MyOrdersView(APIView):
         orders = Order.objects.filter(user=request.user).order_by("-created_at")
         serializer = OrderSerializer(orders, many=True, context={"request": request})
         return Response(serializer.data)
-
-
 
 # Addresses (CRUD)
 class AddressListCreateView(generics.ListCreateAPIView):
@@ -767,7 +802,7 @@ class VerifyPaymentView(APIView):
 
         # Create order
         with transaction.atomic():
-            total = sum(item.variant.price * item.quantity for item in cart_items)
+            total = sum(item.variant.product.price * item.quantity for item in cart_items)
 
             order = Order.objects.create(
                 user=user,
@@ -782,7 +817,7 @@ class VerifyPaymentView(APIView):
                 OrderItem.objects.create(
                     order=order,
                     product=item.variant.product,
-                    price=item.variant.price,
+                    price=item.variant.product.price,
                     quantity=item.quantity
                 )
 
