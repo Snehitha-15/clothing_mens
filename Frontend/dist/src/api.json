@@ -24,10 +24,11 @@
   "Banner":{
     "banner":"/api/banners/"
   },
-  "cart": {
-    "cartDetail": "/api/cart/",
-    "cart": "/api/cart/items/"
-  },
+"cart": {
+  "cartDetail": "/api/cart/",
+  "add": "/api/cart/items/",
+  "remove": "/api/cart/items/"
+},
   "address": {
   "list": "/api/addresses/"
 },

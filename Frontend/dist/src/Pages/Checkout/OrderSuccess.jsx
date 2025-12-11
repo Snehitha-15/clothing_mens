@@ -36,10 +36,23 @@ const OrderSuccess = () => {
           </thead>
           <tbody>
             {items.map((item, idx) => {
-              const name = item.product?.name ?? item.name ?? "-";
+              
+            const name = 
+                item.variant?.product?.name ||
+                item.product?.name ||
+                item.name ||
+                "-";
+
               const qty = item.quantity ?? 1;
-              const unitPrice = item.product?.price ?? item.price ?? 0;
+
+              const unitPrice = 
+                item.variant?.product?.price ||
+                item.product?.price ||
+                item.price ||
+                0;
+
               const lineTotal = unitPrice * qty;
+
 
               return (
                 <tr key={item.id || idx}>

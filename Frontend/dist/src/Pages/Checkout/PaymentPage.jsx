@@ -15,17 +15,17 @@ const PaymentPage = () => {
   const savedAddress = addresses?.[0];
   const [paymentMethod, setPaymentMethod] = useState("cod");
 
+  // PRICE CALCULATION
   const totalAmount = items.reduce(
-    (sum, i) => sum + i.product.price * i.quantity,
+    (sum, i) => sum + i.variant.product.price * i.quantity,
     0
   );
 
-  // IMPORTANT → CartItem IDs
   const cartItemIds = items.map((i) => i.id);
 
-  /* ================================
-         COD ORDER
-  ================================= */
+  /* ===============================
+        COD ORDER FUNCTION
+     =============================== */
   const placeCODOrder = async () => {
     const res = await dispatch(
       createOrder({
@@ -35,21 +35,23 @@ const PaymentPage = () => {
       })
     );
 
-    if (!createOrder.fulfilled.match(res)) {
-      alert("Error placing COD order");
-      return;
+    if (createOrder.fulfilled.match(res)) {
+      dispatch(clearCart());
+      navigate("/order-success", {
+        state: {
+          items,
+          totalAmount,
+          paymentMethod: "COD",
+        },
+      });
+    } else {
+      alert("COD order failed");
     }
-
-    dispatch(clearCart());
-
-    navigate("/order-success", {
-      state: { items, totalAmount, paymentMethod: "COD" },
-    });
   };
 
-  /* ================================
-        RAZORPAY ORDER
-  ================================= */
+  /* ===============================
+        RAZORPAY ONLINE PAYMENT
+     =============================== */
   const startOnlinePayment = async () => {
     const res = await dispatch(
       createOrder({
@@ -65,8 +67,6 @@ const PaymentPage = () => {
     }
 
     const orderData = res.payload;
-
-    // SAVE ITEMS BEFORE CLEARING CART
     const preservedItems = JSON.parse(JSON.stringify(items));
 
     const options = {
@@ -78,20 +78,22 @@ const PaymentPage = () => {
       order_id: orderData.razorpay_order_id,
 
       handler: async function (response) {
+        // BACKEND EXPECTS ONLY IDS → SEND ONLY IDS
+        const itemIdsOnly = preservedItems.map((item) => item.id);
+
         const verifyRes = await dispatch(
           verifyPayment({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
-            items: cartItemIds,
+
+            items: itemIdsOnly, // 🔥 FIXED — only IDs
             address_id: savedAddress.id,
           })
         );
 
         if (verifyPayment.fulfilled.match(verifyRes)) {
-          // NOW clear cart AFTER verification
           dispatch(clearCart());
-
           navigate("/order-success", {
             state: {
               items: preservedItems,
@@ -116,13 +118,10 @@ const PaymentPage = () => {
     new window.Razorpay(options).open();
   };
 
-  /* ================================
-        HANDLE ORDER
-  ================================= */
-  const handlePlaceOrder = () => {
-    if (!savedAddress) return alert("Please select an address");
-    if (items.length === 0) return alert("Your cart is empty");
-
+  /* ===============================
+        MAIN PAYMENT HANDLER
+     =============================== */
+  const handlePayment = () => {
     if (paymentMethod === "cod") placeCODOrder();
     else startOnlinePayment();
   };
@@ -134,48 +133,58 @@ const PaymentPage = () => {
 
         <div className="address-summary p-3 border rounded bg-light mb-3">
           <h5>Deliver To:</h5>
-          <strong>{savedAddress.full_name}</strong>
+          <strong>{savedAddress?.full_name}</strong>
           <p>
-            {savedAddress.address_line1}, {savedAddress.city}<br />
-            {savedAddress.state} – {savedAddress.postal_code}
+            {savedAddress?.address_line1}, {savedAddress?.city}
+            <br />
+            {savedAddress?.state} – {savedAddress?.postal_code}
           </p>
         </div>
 
+        {/* Payment Methods */}
         <div className="payment-methods">
-          {["upi", "card", "netbanking", "cod"].map((method) => (
+          {[
+            { key: "razorpay", label: "Online Payment" },
+            { key: "cod", label: "Cash On Delivery" },
+          ].map((m) => (
             <div
-              key={method}
+              key={m.key}
               className={`method-card ${
-                paymentMethod === method ? "selected" : ""
+                paymentMethod === m.key ? "selected" : ""
               }`}
-              onClick={() => setPaymentMethod(method)}
+              onClick={() => setPaymentMethod(m.key)}
             >
               <input
                 type="radio"
-                checked={paymentMethod === method}
-                onChange={() => setPaymentMethod(method)}
+                checked={paymentMethod === m.key}
+                onChange={() => setPaymentMethod(m.key)}
               />
-              <span>{method.toUpperCase()}</span>
+              <span>{m.label}</span>
             </div>
           ))}
         </div>
 
-        <button className="place-order-btn mt-3" onClick={handlePlaceOrder}>
+        {/* FIXED BUTTON */}
+        <button className="place-order-btn mt-3" onClick={handlePayment}>
           Place Order
         </button>
       </div>
 
       <div className="payment-summary">
         <h4>PRICE DETAILS</h4>
+
         <div className="summary-item">
           <span>Total MRP</span>
           <span>₹{totalAmount}</span>
         </div>
+
         <div className="summary-item">
           <span>Platform Fee</span>
           <span>₹23</span>
         </div>
+
         <hr />
+
         <div className="summary-total">
           <strong>Total Amount</strong>
           <strong>₹{totalAmount + 23}</strong>

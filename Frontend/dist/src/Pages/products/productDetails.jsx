@@ -1,224 +1,173 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
-import {
-  addOrUpdateCart,
-  decreaseQuantity,
-} from "../../Redux/cartSlice";
-
-import {
-  addToWishlist,
-  removeFromWishlist,
-} from "../../Redux/wishlistSlice";
+import { fetchProductById } from "../../Redux/productSlice";
+import { addOrUpdateCart } from "../../Redux/cartSlice";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  const { all: products } = useSelector((state) => state.products);
-  const cartItems = useSelector((state) => state.cart.items);
-  const wishlistItems = useSelector((state) => state.wishlist.items);
-  const { user } = useSelector((state) => state.auth);
+  const { single: product, loading } = useSelector((state) => state.products);
 
-  const [selectedSize, setSelectedSize] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
 
-  // 📌 Find the product
-  const product = products.find((p) => p.id === Number(id));
-
-  // 📌 Wishlist item
-  const wishlistItem = wishlistItems.find(
-    (w) => w?.product === product?.id || w?.product?.id === product?.id
-  );
-
-  // 📌 Cart item
-  const cartItem = cartItems.find((c) => c.id === product?.id);
-
-  // 📌 Set first image
   useEffect(() => {
-    if (product?.images?.length > 0) {
-      setSelectedImage(product.images[0]);
-    }
-  }, [product]);
+    dispatch(fetchProductById(id));
+  }, [dispatch, id]);
 
-  // ❌ If product not found — stop rendering
-  if (!product) {
-    return <h3 className="text-center mt-5">Product Not Found</h3>;
-  }
-
-  const sizes = product.sizes || ["S", "M", "L", "XL"];
+  if (loading || !product) return <p style={{ padding: "20px" }}>Loading...</p>;
 
   return (
-    <div className="container py-4">
-      <div className="row">
+    <div
+      style={{
+        display: "flex",
+        gap: "40px",
+        padding: "30px 40px",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        fontFamily: "Arial",
+      }}
+    >
+      {/* LEFT SECTION → LARGE PRODUCT IMAGE */}
+      <div style={{ flex: 1 }}>
+        <div
+          style={{
+            width: "100%",
+            height: "520px",
+            borderRadius: "12px",
+            overflow: "hidden",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+          }}
+        >
+          <img
+            src={selectedVariant?.image || product.image}
+            alt={product.name}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        </div>
+      </div>
 
-        {/* LEFT IMAGES */}
-        <div className="col-md-6 d-flex">
+      {/* RIGHT SECTION → DETAILS */}
+      <div style={{ flex: 1, paddingRight: "20px" }}>
+        {/* PRODUCT NAME */}
+        <h1 style={{ fontSize: "26px", marginBottom: "10px" }}>
+          {product.name}
+        </h1>
 
-          {/* Thumbnail Column */}
-          <div className="d-flex flex-column me-3">
-            {product.images?.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                onClick={() => setSelectedImage(img)}
-                style={{
-                  width: "70px",
-                  height: "80px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  marginBottom: "10px",
-                  border: selectedImage === img ? "2px solid black" : "1px solid #ddd",
-                  cursor: "pointer",
-                }}
-                alt="thumb"
-              />
-            ))}
-          </div>
+        {/* PRICE */}
+        <h2
+          style={{
+            fontSize: "22px",
+            marginBottom: "25px",
+            fontWeight: "600",
+            color: "#111",
+          }}
+        >
+          ₹{product.price}
+        </h2>
 
-          {/* Main Image */}
-          <div style={{ width: "100%" }}>
-            <img
-              src={selectedImage}
-              alt="main"
+        {/* SIZE SELECTOR */}
+        <h3
+          style={{
+            fontSize: "18px",
+            marginBottom: "12px",
+            marginTop: "15px",
+          }}
+        >
+          Select Size
+        </h3>
+
+        <div style={{ display: "flex", gap: "12px", marginBottom: "18px" }}>
+          {product.variants.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => setSelectedVariant(v)}
               style={{
-                width: "100%",
-                height: "500px",
-                objectFit: "cover",
-                borderRadius: "10px",
-                cursor: "zoom-in",
+                padding: "10px 18px",
+                borderRadius: "25px",
+                border:
+                  selectedVariant?.id === v.id
+                    ? "2px solid #242323ff"
+                    : "1px solid #777",
+                background:
+                  selectedVariant?.id === v.id ? "#1f1d1eff" : "#fff",
+                color: selectedVariant?.id === v.id ? "#fff" : "#000",
+                cursor: "pointer",
+                fontSize: "15px",
+                minWidth: "55px",
+                transition: "0.2s",
               }}
-            />
-          </div>
+            >
+              {v.size}
+            </button>
+          ))}
         </div>
 
-        {/* RIGHT DETAILS */}
-        <div className="col-md-6">
-
-          <h2 className="fw-bold">{product.name}</h2>
-          <p className="text-muted">{product.description}</p>
-
-          <h3 className="text-success fw-bold">₹{product.price}</h3>
-
-          {/* SIZE SELECT */}
-          <div className="mt-4">
-            <h6 className="fw-bold">Select Size</h6>
-            <div className="d-flex gap-2 flex-wrap">
-              {sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`btn ${
-                    selectedSize === size ? "btn-dark" : "btn-outline-dark"
-                  }`}
-                  style={{
-                    borderRadius: "50px",
-                    width: "60px",
-                  }}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* WISHLIST */}
-          <button
-            className="btn btn-light mt-4 px-4 py-2"
-            onClick={() => {
-              if (!user) return navigate("/login");
-              wishlistItem
-                ? dispatch(removeFromWishlist(wishlistItem.id))
-                : dispatch(addToWishlist(product.id));
+        {/* STOCK & COLOR INFO */}
+        {selectedVariant && (
+          <div
+            style={{
+              background: "#f7f7f7",
+              padding: "12px 14px",
+              borderRadius: "8px",
+              marginBottom: "25px",
+              fontSize: "15px",
             }}
           >
-            {wishlistItem ? "❤️ Wishlisted" : "🤍 Add to Wishlist"}
-          </button>
-
-          {/* CART */}
-          <div className="mt-4">
-            {cartItem ? (
-              <div className="d-flex align-items-center gap-3">
-                <button
-                  className="btn btn-dark"
-                  onClick={() => dispatch(decreaseQuantity(product.id))}
-                >
-                  −
-                </button>
-
-                <span className="fw-bold">{cartItem.quantity}</span>
-
-                <button
-                  className="btn btn-dark"
-                  onClick={() =>
-                    dispatch(
-                      addOrUpdateCart({
-                        product_id: product.id,
-                        quantity: cartItem.quantity + 1,
-                      })
-                    )
-                  }
-                >
-                  +
-                </button>
-              </div>
-            ) : (
-              <button
-                className="btn btn-dark px-4 py-2"
-                onClick={() =>
-                  dispatch(
-                    addOrUpdateCart({
-                      product_id: product.id,
-                      quantity: 1,
-                    })
-                  )
-                }
-              >
-                Add to Cart
-              </button>
-            )}
+            <strong>Color:</strong> {selectedVariant.color} &nbsp; | &nbsp;
+            <strong>Stock:</strong> {selectedVariant.stock}
           </div>
+        )}
 
-        </div>
-      </div>
-
-      {/* SIMILAR PRODUCTS */}
-      <div className="mt-5">
-        <h4 className="fw-bold mb-3">Similar Products</h4>
-
-        <div className="row">
-          {products
-            .filter(
-              (p) =>
-                p.category === product.category && p.id !== product.id
+        {/* ADD TO CART BUTTON */}
+        <button
+          disabled={!selectedVariant}
+          onClick={() =>
+            dispatch(
+              addOrUpdateCart({
+                variant: selectedVariant.id,
+                quantity: 1,
+              })
             )
-            .slice(0, 4)
-            .map((p) => (
-              <div
-                key={p.id}
-                className="col-6 col-md-3"
-                onClick={() => navigate(`/product/${p.id}`)}
-                style={{ cursor: "pointer" }}
-              >
-                <img
-                  src={p.images?.[0] || p.image}
-                  alt={p.name}
-                  style={{
-                    width: "100%",
-                    borderRadius: "10px",
-                    height: "280px",
-                    objectFit: "cover",
-                  }}
-                />
-                <p className="fw-bold mt-2">{p.name}</p>
-                <p className="text-success fw-bold">₹{p.price}</p>
-              </div>
-            ))}
-        </div>
-      </div>
+          }
+          style={{
+            width: "100%",
+            padding: "16px",
+            background: selectedVariant ? "#1f1d1eff" : "#ccc",
+            color: "white",
+            borderRadius: "8px",
+            border: "none",
+            cursor: selectedVariant ? "pointer" : "not-allowed",
+            fontSize: "18px",
+            fontWeight: "600",
+            boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
+            transition: "0.2s",
+          }}
+        >
+          Add to Cart
+        </button>
 
+        {/* WISHLIST BTN (OPTIONAL) */}
+        <button
+          style={{
+            marginTop: "12px",
+            width: "100%",
+            padding: "14px",
+            borderRadius: "8px",
+            border: "2px solid #ccc",
+            background: "#fff",
+            fontSize: "16px",
+            cursor: "pointer",
+          }}
+        >
+          ❤️ Wishlist
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWishlist, removeFromWishlist } from "../../Redux/wishlistSlice";
-import { addToCart } from "../../Redux/cartSlice";
+import { useNavigate } from "react-router-dom";
 
 const Wishlist = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const { items } = useSelector((state) => state.wishlist);
 
   useEffect(() => {
@@ -28,15 +30,16 @@ const Wishlist = () => {
                   style={{ height: "200px", objectFit: "cover" }}
                   className="card-img-top"
                 />
+
                 <div className="card-body text-center">
                   <h6>{item.product.name}</h6>
                   <p className="fw-bold">₹{item.product.price}</p>
 
                   <button
                     className="btn btn-sm btn-dark me-2"
-                    onClick={() => dispatch(addToCart(item.product))}
+                    onClick={() => navigate(`/product/${item.product.id}`)}
                   >
-                    Add to Cart
+                    View Product
                   </button>
 
                   <button

@@ -65,7 +65,7 @@ const ProfileDropdown = () => {
       <hr />
 
       <ul className="dropdown-list">
-        <li><Link to="/orders">Orders</Link></li>
+        <li><Link to="/orders">My Orders</Link></li>
         <li><Link to="/wishlist">Wishlist ({wishlistCount})</Link></li>
         <li><Link to="/contact">Contact Us</Link></li>
       </ul>

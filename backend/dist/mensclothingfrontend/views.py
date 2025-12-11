@@ -312,39 +312,39 @@ class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     
-class ProductReviewView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ProductReviewView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request, product_id):
-        product = get_object_or_404(Product, id=product_id)
-        rating = request.data.get("rating")
-        comment = request.data.get("comment", "")
-        variant_id = request.data.get("variant_id")  # optional
+#     def post(self, request, product_id):
+#         product = get_object_or_404(Product, id=product_id)
+#         rating = request.data.get("rating")
+#         comment = request.data.get("comment", "")
+#         variant_id = request.data.get("variant_id")  # optional
 
-        variant = None
-        if variant_id:
-            variant = ProductVariant.objects.filter(id=variant_id).first()
+#         variant = None
+#         if variant_id:
+#             variant = ProductVariant.objects.filter(id=variant_id).first()
 
-        if not rating:
-            return Response({"error": "Rating is required"}, status=400)
+#         if not rating:
+#             return Response({"error": "Rating is required"}, status=400)
 
-        # Create or update review
-        review, created = ProductReview.objects.update_or_create(
-            product=product,
-            user=request.user,
-            variant=variant,
-            defaults={"rating": rating, "comment": comment}
-        )
+#         # Create or update review
+#         review, created = ProductReview.objects.update_or_create(
+#             product=product,
+#             user=request.user,
+#             variant=variant,
+#             defaults={"rating": rating, "comment": comment}
+#         )
 
-        # Save multiple images
-        images = request.FILES.getlist("images")
-        for img in images:
-            ProductReviewImage.objects.create(review=review, image=img)
+#         # Save multiple images
+#         images = request.FILES.getlist("images")
+#         for img in images:
+#             ProductReviewImage.objects.create(review=review, image=img)
 
-        return Response({
-            "message": "Review submitted successfully",
-            "review": ProductReviewSerializer(review).data
-        })
+#         return Response({
+#             "message": "Review submitted successfully",
+#             "review": ProductReviewSerializer(review).data
+#         })
 
       
 class BannerListView(generics.ListAPIView):
