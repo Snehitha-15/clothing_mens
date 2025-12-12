@@ -21,6 +21,9 @@ const Products = ({ selectedCategory }) => {
 
   let filtered = [...products];
 
+  /* ----------------------------------
+        SEARCH FILTER
+  -----------------------------------*/
   const searchQuery =
     new URLSearchParams(location.search).get("search")?.toLowerCase() || "";
 
@@ -30,17 +33,81 @@ const Products = ({ selectedCategory }) => {
     );
   }
 
-  if (selectedCategory && selectedCategory !== "All") {
-    filtered = filtered.filter((item) =>
-      item.name?.toLowerCase().includes(selectedCategory.toLowerCase())
-    );
-  }
+ if (selectedCategory && selectedCategory !== "All") {
+  const cat = selectedCategory.toLowerCase();
 
+  filtered = filtered.filter((item) => {
+    const name = item.name?.toLowerCase();
+
+    // ---------- FORMAL PANT ----------
+    if (cat.includes("formal") && cat.includes("pant")) {
+      return name.includes("formal") && name.includes("pant");
+    }
+
+    // ---------- CASUAL PANT ----------
+    if (cat.includes("casual") && cat.includes("pant")) {
+      return name.includes("casual") && name.includes("pant");
+    }
+
+    // ---------- SHIRT (formal + casual only, NOT sweatshirt / t-shirt) ----------
+    if (cat.includes("shirt") && !cat.includes("t-shirt") && !cat.includes("sweat")) {
+      return (
+        name.includes("shirt") &&
+        !name.includes("sweatshirt") &&
+        !name.includes("sweater") &&
+        !name.includes("tshirt") &&
+        !name.includes("t-shirt")
+      );
+    }
+
+    // ---------- T-SHIRT ----------
+    if (cat.includes("t") && cat.includes("shirt")) {
+      return (
+        name.includes("tshirt") ||
+        name.includes("t-shirt") ||
+        name.includes("t shirt")
+      );
+    }
+
+    // ---------- SWEATSHIRT ----------
+    if (cat.includes("sweatshirt")) {
+      return name.includes("sweatshirt");
+    }
+
+    // ---------- SWEATER ----------
+    if (cat.includes("sweater")) {
+      return name.includes("sweater");
+    }
+
+    // ---------- SPORTS WEAR ----------
+    if (cat.includes("sport") || cat.includes("track")) {
+      return (
+        name.includes("sport") ||
+        name.includes("track") ||
+        name.includes("jogger")
+      );
+    }
+
+    // ---------- JEANS ----------
+    if (cat.includes("jean")) {
+      return name.includes("jeans");
+    }
+
+    return false;
+  });
+}
+
+  /* ----------------------------------
+        CHECK WISHLIST
+  -----------------------------------*/
   const isWishlisted = (productId) =>
     wishlistItems.find(
       (w) => w.product === productId || w.product?.id === productId
     );
 
+  /* ----------------------------------
+        RENDER
+  -----------------------------------*/
   return (
     <div className="products-page px-2 py-3">
       {loading && <p className="text-center">Loading products...</p>}
@@ -67,23 +134,27 @@ const Products = ({ selectedCategory }) => {
                     {wished ? "❤️" : "🤍"}
                   </button>
 
-                  {/* Image */}
+                  {/* IMAGE */}
                   <div
                     className="img-box"
                     onClick={() => navigate(`/product/${item.id}`)}
                   >
                     <img src={item.image} alt={item.name} />
-                  </div>
 
-                  {/* Info */}
-                  <div className="info">
-                    <h6 className="title">{item.name}</h6>
-
-                    <div className="bottom-row">
-                      <span className="price">₹{item.price}</span>
-                      <button className="view-btn">View</button>
+                    {/* ⭐ Rating badge on image */}
+                    <div className="rating-on-image">
+                      ⭐ {item.rating || "4.3"}{" "}
+                      <span className="count">
+                        {item.ratingCount || "3.5k"}
+                      </span>
                     </div>
                   </div>
+
+                  {/* TITLE */}
+                  <h6 className="title">{item.name}</h6>
+
+                  {/* PRICE */}
+                  <div className="price">₹{item.price}</div>
 
                 </div>
               </Col>

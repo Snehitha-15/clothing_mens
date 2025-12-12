@@ -77,8 +77,8 @@ const Cart = () => {
               <td>
                 <img
                   src={
-                      item.variant.product.images?.[0] ||
-                      item.variant.product.image ||
+                      item.variant.images?.[0] ||
+                      item.variant.image ||
                       "/placeholder.png"
                     }
 
